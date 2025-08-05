@@ -4,6 +4,12 @@
 
 *Simple outside, powerful inside*
 
+---
+
+**Language versions:** [🇺🇸 English](#) | [🇷🇺 Русский](README_RU.md)
+
+---
+
 ## ✨ Features
 
 - **📝 Instant note creation** - Start writing immediately with auto-save
@@ -81,4 +87,4 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
-*Ukhvat (Ухват) - A traditional Russian oven tool for handling pots. Just like the tool helps manage heavy cookware, this app helps you handle your heavy thoughts and ideas.* 🍲
+*Ukhvat (Ухват) - A traditional Russian oven tool for handling pots. Just like the tool helps manage heavy cookware, this app helps you handle your heavy thoughts and ideas in your head..*
