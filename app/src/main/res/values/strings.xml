@@ -304,8 +304,8 @@
     <string name="database_import_from_batch">Импорт из базы данных</string>
     <string name="select_db_file_prompt">Нажмите "Выбрать файл БД" для начала импорта.</string>
     <string name="note_prefix_pattern">заметка_\\d+_</string>
-    <string name="folder_import_description">Импорт всех .md файлов из выбранной папки (включая подпапки). Каждый файл = отдельная заметка. Структура папок отражается в заголовках.</string>
-    <string name="archive_import_description">Импорт заметок из ZIP архива с .md файлами. Каждый файл = отдельная заметка. Поддержка UTF-8, автоматическое извлечение заголовков из имён файлов.</string>
+    <string name="folder_import_description">Импорт всех .md и .txt файлов из выбранной папки (включая подпапки). Каждый файл = отдельная заметка. Структура папок отражается в заголовках.</string>
+    <string name="archive_import_description">Импорт заметок из ZIP архива с .md и .txt файлами. Каждый файл = отдельная заметка. Поддержка UTF-8, автоматическое извлечение заголовков из имён файлов.</string>
     <string name="version_example_description">Импорт архива</string>
     <string name="error">Ошибка</string>
     <string name="close">Закрыть</string>

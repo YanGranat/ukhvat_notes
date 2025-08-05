@@ -376,7 +376,8 @@ private fun NotesListContent(
                      onEvent(NotesListEvent.CreateNewNote)
                  },
                 containerColor = Color(0xFF1c75d3), // Same color as TopAppBar
-                contentColor = Color.White
+                contentColor = Color.White,
+                shape = CircleShape // Make button perfectly round
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -658,7 +659,7 @@ private fun ExpandedSearchResults(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                                 // Result number
-            val numberColor = precomputedHighlightColor          // Precomputed value
+            val numberColor = Color.White          // White color for better visibility
             val numberBackgroundColor = precomputedBackgroundColor.copy(alpha = 0.5f)  // Reuse precomputed value
                     
                     // Centered digit positioning in result counter circle
