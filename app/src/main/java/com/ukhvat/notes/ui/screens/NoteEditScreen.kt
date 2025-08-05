@@ -537,7 +537,6 @@ private fun NoteInfoDialog(
             InfoRow(stringResource(R.string.modified), updatedDate, colors)
             InfoRow(stringResource(R.string.characters), noteInfo.characterCount.toString(), colors)
             InfoRow(stringResource(R.string.words), noteInfo.wordCount.toString(), colors)
-            InfoRow(stringResource(R.string.lines), noteInfo.lineCount.toString(), colors)
             }
         },
                                                                        confirmButton = {

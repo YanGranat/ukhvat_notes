@@ -6,5 +6,16 @@
         <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="android:navigationBarColor">@color/window_background_dark</item>
         <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Smooth transitions for language switching -->
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
+    
+    <!-- Window animation style for smooth language transitions -->
+    <style name="WindowAnimationTransition" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:activityOpenExitAnimation">@android:anim/fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:activityCloseExitAnimation">@android:anim/fade_out</item>
     </style>
 </resources> 

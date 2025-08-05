@@ -764,8 +764,7 @@ class NoteEditViewModel(
                         createdAt = currentNote.createdAt,
                         updatedAt = currentNote.updatedAt,
                         characterCount = content.length,
-                        wordCount = if (content.isBlank()) 0 else content.trim().split("\\s+".toRegex()).size,
-                        lineCount = content.lines().size
+                        wordCount = if (content.isBlank()) 0 else content.trim().split("\\s+".toRegex()).size
                     )
                     
                     _uiState.value = _uiState.value.copy(
@@ -936,8 +935,7 @@ data class NoteInfo(
     val createdAt: Long,
     val updatedAt: Long,
     val characterCount: Int,
-    val wordCount: Int,
-    val lineCount: Int
+    val wordCount: Int
 )
 
 data class SearchMatch(
