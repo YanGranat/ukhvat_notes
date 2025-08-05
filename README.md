@@ -10,6 +10,12 @@
 
 ---
 
+## 📸 Screenshots
+
+![Ukhvat Screenshots](screenshots/ukhvat_v1_Screenshots.jpg)
+
+*Main interface: Notes List, Note Editor, Search, and Trash*
+
 ## ✨ Features
 
 - **📝 Instant note creation** - Start writing immediately with auto-save
