@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ukhvat</string>
+    <string name="new_note">New note</string>
+    <string name="enter_text">Enter text</string>
+    <string name="notes">Notes</string>
+    <string name="export_notes">Export notes</string>
+
+
+    <string name="empty_note_title">New note %1$s</string>
+    
+    <!-- Toast notifications -->
+    <string name="note_saved">Note saved</string>
+    <string name="note_deleted">Note deleted</string>
+    <string name="notes_deleted">Notes deleted</string>
+    <string name="note_exported_successfully">Note exported successfully</string>
+    <string name="notes_exported_successfully">Notes exported successfully</string>
+    <string name="note_imported_successfully">Note imported successfully</string>
+    <string name="notes_imported_successfully">Notes imported successfully</string>
+    <string name="empty_note">Please enter text!</string>
+    <string name="draft_saved">Draft saved</string>
+    <string name="draft_restored">Draft restored</string>
+    <string name="changes_discarded">Changes discarded</string>
+    <string name="no_notes_selected_export">No notes selected for export</string>
+    <string name="no_notes_selected_delete">No notes selected for deletion</string>
+    <string name="export_in_progress">Export already in progress</string>
+    
+    <!-- Export format specific messages -->
+    <string name="exported_to_markdown">Exported to Markdown file</string>
+    <string name="exported_to_archive">Exported to ZIP archive</string>
+    <string name="exported_to_database">Database exported</string>
+    <string name="exported_md_files">Exported %1$d MD files</string>
+    
+    <!-- Import messages -->
+    <string name="imported_from_archive">Imported from archive: %1$d notes</string>
+    <string name="imported_from_folder">Imported from folder: %1$d notes</string>
+    <string name="imported_from_database">Imported from database: %1$d notes</string>
+    
+    <!-- New import success messages -->
+    <string name="import_database_success">Imported from database: %1$d notes</string>
+    <string name="import_archive_success">Imported from archive: %1$d notes</string>
+    <string name="import_folder_success">Imported from folder: %1$d notes</string>
+    <string name="import_no_notes_found">No notes found for import</string>
+    
+    <!-- Version history strings -->
+    <string name="delete_version">Delete</string>
+    <string name="copy_version">Copy</string>
+    <string name="rename_version">Rename</string>
+    <string name="export_history">Export history</string>
+    <string name="export_as_text">Copy to clipboard</string>
+    <string name="export_as_markdown">MD file</string>
+    <string name="version_deleted">Version deleted</string>
+    <string name="version_copied">Version copied</string>
+    <string name="version_renamed">Version renamed</string>
+    <string name="history_exported">Version history exported</string>
+    <string name="delete_version_confirm">Delete this version?</string>
+    <string name="enter_version_name">Enter version name</string>
+    <string name="version_name_hint">Version name</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="delete">Delete</string>
+    
+    <!-- Trash/Recycle Bin strings -->
+    <string name="trash">Trash</string>
+    <string name="note_restored">Note restored</string>
+    <string name="note_permanently_deleted">Note permanently deleted</string>
+    <string name="trash_cleared_single">Trash cleared (1 note)</string>
+    <string name="trash_cleared_multiple">Trash cleared (%1$d notes)</string>
+    <string name="trash_already_empty">Trash is already empty</string>
+    <string name="error_restoring_note">Error restoring note</string>
+    <string name="error_deleting_note">Error deleting note</string>
+    <string name="error_clearing_trash">Error clearing trash</string>
+    <string name="restore">Restore</string>
+    <string name="clear_trash">Clear trash</string>
+    
+    <!-- About screen strings -->
+    <string name="about_app">About</string>
+    <string name="about_title">Ukhvat</string>
+    <string name="about_tagline">Simple outside, powerful inside</string>
+    <string name="about_version">Version: %1$s</string>
+    
+    <!-- Language strings -->
+    <string name="language">Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="language_changed">Language changed</string>
+    
+    <!-- Menu strings -->
+    <string name="export_notes_menu">Export notes</string>
+    <string name="import_notes_menu">Import notes</string>
+    
+    <!-- Editor strings -->
+    <string name="redo">Redo</string>
+    <string name="save">Save</string>
+    
+    <!-- Export dialog strings -->
+    <string name="export_selected_notes">Export %1$d %2$s:</string>
+    <string name="select_export_format">Choose the format to save notes:</string>
+    <string name="export_plain_text">Plain text</string>
+    <string name="export_markdown_file">Single Markdown file</string>
+    <string name="export_archive">Archive with separate files</string>
+    
+    <!-- Note plurals -->
+    <string name="note_singular">note</string>
+    <string name="note_few">notes</string>
+    <string name="note_many">notes</string>
+    
+    <!-- Version descriptions -->
+    <string name="version_creation">Note creation</string>
+    <string name="version_autosave">Autosave</string>
+    <string name="version_force_save">Force save</string>
+    
+    <!-- Error messages -->
+    <string name="save_error">Save error: %1$s</string>
+    <string name="note_not_found">Note not found</string>
+    <string name="export_error">Export error: %1$s</string>
+    <string name="import_database_error">Database import error: %1$s</string>
+    <string name="import_archive_error">Archive import error: %1$s</string>
+    <string name="import_folder_error">Folder import error: %1$s</string>
+    <string name="note_load_error">Note loading error: %1$s</string>
+    
+    <!-- Export/Import Dialog Strings -->
+    <string name="select_export_format_msg">Select export format:</string>
+    <string name="export_selected_notes_msg">Export selected notes</string>
+    <string name="export_plain_text_sharing">Export note</string>
+    <string name="export_database_note">Export SQLite database</string>
+    <string name="export_database_available">Database export available only for general export (all notes)</string>
+    <string name="export_selected_desc">Export selected</string>
+    
+    <!-- Import Dialog Strings -->
+    <string name="select_import_source">Select import source</string>
+    <string name="import_from_sources">Import notes from various sources:</string>
+    <string name="import_from_database">Import from SQLite database</string>
+    <string name="import_from_archive">Import from ZIP archive</string>
+    <string name="import_from_folder">Import from folder</string>
+    
+    <!-- Search and UI Strings -->
+    <string name="search_notes">Search notes...</string>
+    <string name="no_notes">No notes</string>
+    
+    <!-- Version History Dialog -->
+    <string name="select_version_action">Select action for version from %1$s:</string>
+    <string name="rollback_current">Rollback current note</string>
+    <string name="create_new_note">Create new note</string>
+    <string name="create_new_note_from_version">Create new note</string>
+    
+    <!-- Toast Messages -->
+    <string name="notes_updated">Updated notes: %1$d</string>
+    <string name="old_versions_cleared">Cleared old versions for %1$d notes</string>
+    <string name="no_notes_for_export">No notes to export</string>
+    <string name="too_many_notes_text_export">Too many notes for plain text export (%1$.1f MB). Use file export.</string>
+    <string name="export_notes_title">Export notes</string>
+    
+    <!-- Trash Screen -->
+    <string name="deleted_notes_info">Deleted notes are stored in trash and automatically permanently deleted after 30 days.</string>
+    <string name="clear_trash_confirm">%1$d notes will be permanently deleted. This action cannot be undone.</string>
+    <string name="clear_trash_confirm_single">1 note will be permanently deleted. This action cannot be undone.</string>
+    <string name="deleted_notes_shown_here">Deleted notes will be\nshown here</string>
+    
+    <!-- ExportManager Messages -->
+    <string name="no_data_to_export">No data to export</string>
+    <string name="export_text_too_large">Too many notes for plain text export (%1$.1f MB). Use file export.</string>
+    <string name="export_choose_app">Export notes</string>
+    <string name="export_success">Export completed: %1$s</string>
+    <string name="export_failed">Export failed: %1$s</string>
+    
+    <!-- ImportManager Messages -->  
+    <string name="import_success_database">Imported %1$d notes from database</string>
+    <string name="import_success_archive">Imported %1$d notes from archive</string>
+    <string name="import_success_folder">Imported %1$d notes from folder</string>
+    <string name="import_failed_database">Database import failed: %1$s</string>
+    <string name="import_failed_archive">Archive import failed: %1$s</string>
+    <string name="import_failed_folder">Folder import failed: %1$s</string>
+    
+    <!-- Additional Error Messages -->
+    <string name="update_error">Update error: %1$s</string>
+    <string name="cleanup_versions_error">Version cleanup error: %1$s</string>
+    
+    <!-- ExportManager Error Messages -->
+    <string name="content_too_large_sharing">Content too large for sharing Intent</string>
+    <string name="unsupported_export_type">Unsupported export type: %1$s</string>
+    <string name="export_generic_error">Export error: %1$s</string>
+    <string name="database_export_chooser">Export database</string>
+    <string name="database_export_failed">Failed to create database export</string>
+    <string name="database_export_error">Database export error: %1$s</string>
+    <string name="no_content_notes_export">No notes with content to export</string>
+    <string name="data_too_large_export">Data too large for export (%1$.1f MB). Maximum %2$d MB. Use ZIP archive for large data compression.</string>
+    <string name="folder_access_denied">No folder access. Check permissions.</string>
+    <string name="folder_selection_problem">Problem with selected folder</string>
+    <string name="md_export_error">MD files export error: %1$s</string>
+    <string name="no_files_exported">Failed to export any files. Check folder access.</string>
+    <string name="file_write_access_denied">Failed to open file for writing. Check access rights.</string>
+    <string name="file_access_denied">No file access. Check permissions.</string>
+    <string name="file_write_error">File write error: %1$s</string>
+    <string name="markdown_save_error">Markdown file save error: %1$s</string>
+    <string name="archive_creation_error">ZIP archive creation error: %1$s</string>
+    <string name="empty_archive_created">Empty archive created. Check notes content.</string>
+    <string name="archive_write_access_denied">Failed to open archive file for writing. Check access rights.</string>
+    <string name="archive_access_denied">No archive file access. Check permissions.</string>
+    <string name="archive_write_error">Archive write error: %1$s</string>
+    <string name="archive_creation_failed">Failed to create ZIP archive - all notes were skipped due to errors</string>
+    
+    <!-- Version History Strings -->
+
+    <string name="no_versions_saved">No saved versions yet</string>
+    <string name="versions_auto_created">Versions are created automatically on significant changes</string>
+    <string name="restore_version_question">Restore version?</string>
+    <string name="rollback_current_note">Rollback current note</string>
+    <string name="create_new_note_button">Create new note</string>
+    <string name="version_history_copied">Version history copied</string>
+    <string name="copy_error">Copy error: %1$s</string>
+    <string name="share_version_history">Share version history</string>
+    <string name="file_creation_error">File creation error: %1$s</string>
+    <string name="version_preview_title">Version Preview</string>
+    <string name="backup_before_rollback">Backup before rollback</string>
+    <string name="rollback_to_version">Rollback to version from %1$s</string>
+    
+    <!-- ViewModel Error Messages -->
+    <string name="search_error">Search error: %1$s</string>
+    <string name="language_change_error">Language change error: %1$s</string>
+    <string name="note_not_found_error">Note not found</string>
+    <string name="add_text_first">Add text to note first</string>
+    <string name="force_save_failed">Failed to create note for force save</string>  
+    <string name="deletion_error">Deletion error: %1$s</string>
+    <string name="info_error">Info error: %1$s</string>
+    <string name="exit_error">Exit error: %1$s</string>
+    
+    <!-- UI Strings -->
+    <string name="create_note_desc">Create note</string>
+    <string name="delete_note">Delete note</string>
+    <string name="expand_results_desc">Expand results</string>
+    <string name="collapse_results_desc">Collapse results</string>
+    <string name="more_results">and %1$d more results...</string>
+    <string name="cancel_selection_desc">Cancel selection</string>
+    <string name="select_all_desc">Select all</string>
+    <string name="delete_selected_desc">Delete selected</string>
+    <string name="loading_dots">Loading.</string>
+    <string name="loading_double_dots">Loading..</string>
+    <string name="loading_triple_dots">Loading...</string>
+    <string name="search_in_note_desc">Search in note</string>
+    <string name="note_info_title">Note information</string>
+    <string name="delete_note_question">Delete note?</string>
+    <string name="cannot_undo">This action cannot be undone</string>
+    <string name="search_in_note_placeholder">Search in note...</string>
+    
+    <!-- Trash Screen Strings -->
+    <string name="trash_info_desc">Trash information</string>
+    <string name="clear_trash_desc">Clear trash</string>
+    <string name="deleted_note_title">Deleted note</string>
+    <string name="note_is_empty">Note is empty</string>
+    <string name="trash_info_title">Trash information</string>
+    <string name="clear_trash_title">Clear trash?</string>
+    
+    <!-- Constants -->
+    <string name="new_note_placeholder">New note</string>
+    
+    <!-- Additional ExportManager Messages -->
+    <string name="use_individual_md_button">Use "Individual MD files" button in export menu.</string>
+    <string name="data_too_large_200mb">Data too large for export (%1$.1f MB). Maximum 200 MB. Use ZIP archive for large data compression.</string>
+    <string name="data_too_large_10mb">Data too large for export (%1$.1f MB). Maximum 10 MB.</string>
+    <string name="data_too_large_20mb">Data too large for archive (%1$.1f MB). Maximum 20 MB.</string>
+    <string name="disk_space_problem">Disk space problem</string>
+    <string name="compression_data_problem">Data compression problem</string>
+    <string name="unknown_error">Unknown error</string>
+    
+    <!-- ThemeSelector Messages -->
+    <string name="change_theme_desc">Change theme: %1$s</string>
+    <string name="system_theme">System</string>
+    
+    <!-- SearchBar Messages -->  
+    <string name="search_placeholder">Search...</string>
+    <string name="close_search_desc">Close search</string>
+    
+    <!-- Version History Title with Parameter -->
+    <string name="version_history_with_param">Version History</string>
+    
+    <!-- Database and System Messages -->
+    <string name="database_copy_failed">Failed to copy database file</string>
+    <string name="database_missing_tables">Database does not contain expected tables (note_metadata, note_content)</string>
+    <string name="database_structure_invalid">Invalid database structure: %1$s</string>
+    <string name="import_from_database_desc">Import from database</string>
+    <string name="database_export_subject">Notes database - %1$s</string>
+    <string name="database_export_success">Notes database exported successfully</string>
+    <string name="database_info_failed">Failed to get database information</string>
+    <string name="log_app_text">Ukhvat logs</string>
+    <string name="logs_summary">Total records: %1$d\nErrors: %2$d\nWarnings: %3$d\nInfo: %4$d</string>
+    <string name="logs_info_failed">Failed to get logs information</string>
+    <string name="just_now">just now</string>
+    <string name="force_save_keyword">force save</string>
+    <string name="autosave_keyword">Autosave</string>
+    <string name="no_notes_to_export">No notes to export</string>
+    <string name="folder_access_failed">Failed to access folder</string>
+    
+    <!-- Version Export Strings -->
+    <string name="version_date_label">Date: %1$s</string>
+    <string name="version_title_label">Title: %1$s</string>
+    <string name="version_description_label">Description: %1$s</string>
+    
+    <!-- Import/Export Utility Messages -->
+    <string name="database_import_error">Database import error: %1$s</string>
+    <string name="database_import_from_batch">Import from database</string>
+    <string name="select_db_file_prompt">Click "Select DB file" to start import.</string>
+    <string name="note_prefix_pattern">заметка_\\d+_</string>
+    <string name="folder_import_description">Import all .md files from selected folder (including subfolders). Each file = separate note. Folder structure reflected in titles.</string>
+    <string name="archive_import_description">Import notes from ZIP archive with .md files. Each file = separate note. UTF-8 support, automatic title extraction from file names.</string>
+    <string name="version_example_description">Archive import</string>
+    <string name="error">Error</string>
+    <string name="close">Close</string>
+    
+    <!-- Additional Domain Layer Strings -->
+    <string name="imported_notes_count">Imported: %1$d notes</string>
+    
+    <!-- Time Strings -->
+    <string name="minutes_ago">%1$d min ago</string>
+    <string name="hours_ago">%1$d h ago</string>
+    <string name="days_ago">%1$d d ago</string>
+    
+    <!-- Selection Counter -->
+    <string name="selected_count">%1$d selected</string>
+    
+    <!-- Export/Import format strings -->
+    <string name="export_database">SQLite Database</string>
+    <string name="export_individual_md">Individual MD files</string>
+    
+    <!-- Common UI strings -->
+    <string name="back">Back</string>
+    <string name="undo">Undo</string>
+    <string name="menu">Menu</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+    <string name="clear">Clear</string>
+    <string name="understand">Got it</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    
+    <!-- Trash screen -->
+    <string name="trash_screen_title">Trash</string>
+    <string name="trash_empty">Trash is empty</string>
+    <string name="deleted_date">Deleted: %1$s</string>
+    <string name="unknown">Unknown</string>
+    
+    <!-- Note info -->
+    <string name="created">Created</string>
+    <string name="modified">Modified</string>
+    <string name="characters">Characters</string>
+    <string name="words">Words</string>
+    <string name="lines">Lines</string>
+    
+    <!-- Theme strings -->
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    
+    <!-- Version history -->
+    <string name="version_history_title">Version History</string>
+    <string name="note_fallback">Note</string>
+    
+    <!-- Database export -->
+    <string name="database_export_header">Ukhvat database</string>
+    
+    <!-- Version keywords for classification -->
+    <string name="rollback_keyword">rollback</string>
+    <string name="backup_keyword">backup</string>
+    
+    <!-- Accessibility content descriptions -->
+    <string name="note_selected">Note selected</string>
+    <string name="empty_version_history">Empty version history</string>
+</resources>

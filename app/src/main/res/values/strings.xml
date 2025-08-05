@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ухват</string>
+    <string name="new_note">Новая заметка</string>
+    <string name="enter_text">Введите текст</string>
+    <string name="notes">Заметки</string>
+    <string name="export_notes">Экспорт заметок</string>
+
+
+    <string name="empty_note_title">Новая заметка %1$s</string>
+    
+    <!-- Toast notifications -->
+    <string name="note_saved">Заметка сохранена</string>
+    <string name="note_deleted">Заметка удалена</string>
+    <string name="notes_deleted">Заметки удалены</string>
+    <string name="note_exported_successfully">Заметка экспортирована успешно</string>
+    <string name="notes_exported_successfully">Заметки экспортированы успешно</string>
+    <string name="note_imported_successfully">Заметка импортирована успешно</string>
+    <string name="notes_imported_successfully">Заметки импортированы успешно</string>
+    <string name="empty_note">Пожалуйста, введите текст!</string>
+    <string name="draft_saved">Черновик сохранен</string>
+    <string name="draft_restored">Черновик восстановлен</string>
+    <string name="changes_discarded">Изменения отменены</string>
+    <string name="no_notes_selected_export">Не выбраны заметки для экспорта</string>
+    <string name="no_notes_selected_delete">Не выбраны заметки для удаления</string>
+    <string name="export_in_progress">Уже выполняется экспорт</string>
+    
+    <!-- Export format specific messages -->
+    <string name="exported_to_markdown">Экспортировано в Markdown файл</string>
+    <string name="exported_to_archive">Экспортировано в ZIP архив</string>
+    <string name="exported_to_database">База данных экспортирована</string>
+    <string name="exported_md_files">Экспортировано %1$d MD файлов</string>
+    
+    <!-- Import messages -->
+    <string name="imported_from_archive">Импортировано из архива: %1$d заметок</string>
+    <string name="imported_from_folder">Импортировано из папки: %1$d заметок</string>
+    <string name="imported_from_database">Импортировано из базы данных: %1$d заметок</string>
+    
+    <!-- New import success messages -->
+    <string name="import_database_success">Импортировано из базы данных: %1$d заметок</string>
+    <string name="import_archive_success">Импортировано из архива: %1$d заметок</string>
+    <string name="import_folder_success">Импортировано из папки: %1$d заметок</string>
+    <string name="import_no_notes_found">Заметки для импорта не найдены</string>
+    
+    <!-- Version history strings -->
+    <string name="delete_version">Удалить</string>
+    <string name="copy_version">Копировать</string>
+    <string name="rename_version">Переименовать</string>
+    <string name="export_history">Экспорт истории</string>
+    <string name="export_as_text">Копировать в буфер обмена</string>
+    <string name="export_as_markdown">MD файл</string>
+    <string name="version_deleted">Версия удалена</string>
+    <string name="version_copied">Версия скопирована</string>
+    <string name="version_renamed">Версия переименована</string>
+    <string name="history_exported">История версий экспортирована</string>
+    <string name="delete_version_confirm">Удалить эту версию?</string>
+    <string name="enter_version_name">Введите название версии</string>
+    <string name="version_name_hint">Название версии</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">OK</string>
+    <string name="delete">Удалить</string>
+    
+    <!-- Trash/Recycle Bin strings -->
+    <string name="trash">Корзина</string>
+    <string name="note_restored">Заметка восстановлена</string>
+    <string name="note_permanently_deleted">Заметка удалена навсегда</string>
+    <string name="trash_cleared_single">Корзина очищена (1 заметка)</string>
+    <string name="trash_cleared_multiple">Корзина очищена (%1$d заметок)</string>
+    <string name="trash_already_empty">Корзина уже пуста</string>
+    <string name="error_restoring_note">Ошибка восстановления заметки</string>
+    <string name="error_deleting_note">Ошибка удаления заметки</string>
+    <string name="error_clearing_trash">Ошибка очистки корзины</string>
+    <string name="restore">Восстановить</string>
+    <string name="clear_trash">Очистить корзину</string>
+    
+    <!-- About screen strings -->
+    <string name="about_app">О приложении</string>
+    <string name="about_title">Ухват</string>
+    <string name="about_tagline">Простое, но мощное приложение для заметок</string>
+    <string name="about_version">Версия: %1$s</string>
+    
+    <!-- Language strings -->
+    <string name="language">Язык</string>
+    <string name="select_language">Выберите язык</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="language_changed">Язык изменен</string>
+    
+    <!-- Menu strings -->
+    <string name="export_notes_menu">Экспорт заметок</string>
+    <string name="import_notes_menu">Импорт заметок</string>
+    
+    <!-- Editor strings -->
+    <string name="redo">Повторить</string>
+    <string name="save">Сохранить</string>
+    
+    <!-- Export dialog strings -->
+    <string name="export_selected_notes">Экспортировать %1$d %2$s:</string>
+    <string name="select_export_format">Выберите в каком формате сохранить заметки:</string>
+    <string name="export_plain_text">Сплошной текст</string>
+    <string name="export_markdown_file">Один Markdown файл</string>
+    <string name="export_archive">Архив с отдельными файлами</string>
+    
+    <!-- Note plurals -->
+    <string name="note_singular">заметку</string>
+    <string name="note_few">заметки</string>
+    <string name="note_many">заметок</string>
+    
+    <!-- Version descriptions -->
+    <string name="version_creation">Создание заметки</string>
+    <string name="version_autosave">Автосохранение</string>
+    <string name="version_force_save">Принудительное сохранение</string>
+    
+    <!-- Error messages -->
+    <string name="save_error">Ошибка сохранения: %1$s</string>
+    <string name="note_not_found">Заметка не найдена</string>
+    
+    <!-- Export/Import Dialog Strings -->
+    <string name="select_export_format_msg">Выберите формат экспорта:</string>
+    <string name="export_selected_notes_msg">Экспорт выбранных заметок</string>
+    <string name="export_plain_text_sharing">Экспортировать заметку</string>
+    <string name="export_database_note">Экспорт базы данных SQLite</string>
+    <string name="export_database_available">Экспорт базы данных доступен только для общего экспорта (всех заметок)</string>
+    <string name="export_selected_desc">Экспортировать выбранные</string>
+    
+    <!-- Import Dialog Strings -->
+    <string name="select_import_source">Выберите источник импорта</string>
+    <string name="import_from_sources">Импорт заметок из различных источников:</string>
+    <string name="import_from_database">Импорт из базы данных SQLite</string>
+    <string name="import_from_archive">Импорт из ZIP архива</string>
+    <string name="import_from_folder">Импорт из папки</string>
+    
+    <!-- Search and UI Strings -->
+    <string name="search_notes">Поиск заметок...</string>
+    <string name="no_notes">Нет заметок</string>
+    
+    <!-- Version History Dialog -->
+    <string name="select_version_action">Выберите действие для версии от %1$s:</string>
+    <string name="rollback_current">Откат текущей заметки</string>
+    <string name="create_new_note">Создание новой заметки</string>
+    <string name="create_new_note_from_version">Создание новой заметки</string>
+    
+    <!-- Toast Messages -->
+    <string name="notes_updated">Обновлено заметок: %1$d</string>
+    <string name="old_versions_cleared">Очищены старые версии для %1$d заметок</string>
+    <string name="no_notes_for_export">Нет заметок для экспорта</string>
+    <string name="too_many_notes_text_export">Слишком много заметок для экспорта сплошным текстом (%1$.1f MB). Используйте экспорт в файл.</string>
+    <string name="export_notes_title">Экспорт заметок</string>
+    
+    <!-- Error Messages -->
+    <string name="export_error">Ошибка экспорта: %1$s</string>
+    <string name="import_database_error">Ошибка импорта базы: %1$s</string>
+    <string name="import_archive_error">Ошибка импорта архива: %1$s</string>
+    <string name="import_folder_error">Ошибка импорта папки: %1$s</string>
+    <string name="note_load_error">Ошибка загрузки заметки: %1$s</string>
+    
+    <!-- Trash Screen -->
+    <string name="deleted_notes_info">Удаленные заметки хранятся в корзине и автоматически навсегда удаляются через 30 дней.</string>
+    <string name="clear_trash_confirm">Будут навсегда удалены %1$d заметок. Это действие нельзя отменить.</string>
+    <string name="clear_trash_confirm_single">Будет навсегда удалена 1 заметка. Это действие нельзя отменить.</string>
+    <string name="deleted_notes_shown_here">Удаленные заметки будут\nпоказаны здесь</string>
+    
+    <!-- ExportManager Messages -->
+    <string name="no_data_to_export">Нет данных для экспорта</string>
+    <string name="export_text_too_large">Слишком много заметок для экспорта сплошным текстом (%1$.1f MB). Используйте экспорт в файл.</string>
+    <string name="export_choose_app">Экспорт заметок</string>
+    <string name="export_success">Экспорт завершен: %1$s</string>
+    <string name="export_failed">Ошибка экспорта: %1$s</string>
+    
+    <!-- ImportManager Messages -->  
+    <string name="import_success_database">Импортировано %1$d заметок из базы данных</string>
+    <string name="import_success_archive">Импортировано %1$d заметок из архива</string>
+    <string name="import_success_folder">Импортировано %1$d заметок из папки</string>
+    <string name="import_failed_database">Ошибка импорта базы: %1$s</string>
+    <string name="import_failed_archive">Ошибка импорта архива: %1$s</string>
+    <string name="import_failed_folder">Ошибка импорта папки: %1$s</string>
+    
+    <!-- Additional Error Messages -->
+    <string name="update_error">Ошибка обновления: %1$s</string>
+    <string name="cleanup_versions_error">Ошибка очистки версий: %1$s</string>
+    
+    <!-- ExportManager Error Messages -->
+    <string name="content_too_large_sharing">Контент слишком большой для sharing Intent</string>
+    <string name="unsupported_export_type">Неподдерживаемый тип экспорта: %1$s</string>
+    <string name="export_generic_error">Ошибка экспорта: %1$s</string>
+    <string name="database_export_chooser">Экспорт базы данных</string>
+    <string name="database_export_failed">Не удалось создать экспорт базы данных</string>
+    <string name="database_export_error">Ошибка экспорта базы данных: %1$s</string>
+    <string name="no_content_notes_export">Нет заметок с содержимым для экспорта</string>
+    <string name="data_too_large_export">Слишком большой объем данных для экспорта (%1$.1f MB). Максимум %2$d MB. Используйте ZIP архив для сжатия больших объемов.</string>
+    <string name="folder_access_denied">Нет доступа к папке. Проверьте разрешения.</string>
+    <string name="folder_selection_problem">Проблема с выбранной папкой</string>
+    <string name="md_export_error">Ошибка экспорта MD файлов: %1$s</string>
+    <string name="no_files_exported">Не удалось экспортировать ни одного файла. Проверьте доступ к папке.</string>
+    <string name="file_write_access_denied">Не удалось открыть файл для записи. Проверьте права доступа.</string>
+    <string name="file_access_denied">Нет доступа к файлу. Проверьте разрешения.</string>
+    <string name="file_write_error">Ошибка записи файла: %1$s</string>
+    <string name="markdown_save_error">Ошибка сохранения Markdown файла: %1$s</string>
+    <string name="archive_creation_error">Ошибка создания ZIP архива: %1$s</string>
+    <string name="empty_archive_created">Создан пустой архив. Проверьте содержимое заметок.</string>
+    <string name="archive_write_access_denied">Не удалось открыть файл для записи архива. Проверьте права доступа.</string>
+    <string name="archive_access_denied">Нет доступа к файлу архива. Проверьте разрешения.</string>
+    <string name="archive_write_error">Ошибка записи архива: %1$s</string>
+    <string name="archive_creation_failed">Не удалось создать ZIP архив - все заметки были пропущены из-за ошибок</string>
+    
+    <!-- Version History Strings -->
+
+    <string name="no_versions_saved">Пока нет сохраненных версий</string>
+    <string name="versions_auto_created">Версии создаются автоматически при значительных изменениях</string>
+    <string name="restore_version_question">Восстановить версию?</string>
+    <string name="rollback_current_note">Откатить текущую заметку</string>
+    <string name="create_new_note_button">Создать новую заметку</string>
+    <string name="version_history_copied">История версий скопирована</string>
+    <string name="copy_error">Ошибка копирования: %1$s</string>
+    <string name="share_version_history">Поделиться историей версий</string>
+    <string name="file_creation_error">Ошибка создания файла: %1$s</string>
+    <string name="version_preview_title">Просмотр версии</string>
+    <string name="backup_before_rollback">Резервная копия перед откатом</string>
+    <string name="rollback_to_version">Откат к версии от %1$s</string>
+    
+    <!-- ViewModel Error Messages -->
+    <string name="search_error">Ошибка поиска: %1$s</string>
+    <string name="language_change_error">Ошибка изменения языка: %1$s</string>
+    <string name="note_not_found_error">Заметка не найдена</string>
+    <string name="add_text_first">Сначала добавьте текст в заметку</string>
+    <string name="force_save_failed">Не удалось создать заметку для принудительного сохранения</string>
+    <string name="deletion_error">Ошибка удаления: %1$s</string>
+    <string name="info_error">Ошибка получения информации: %1$s</string>
+    <string name="exit_error">Ошибка при выходе: %1$s</string>
+    
+    <!-- UI Strings -->
+    <string name="create_note_desc">Создать заметку</string>
+    <string name="delete_note">Удалить заметку</string>
+    <string name="expand_results_desc">Развернуть результаты</string>
+    <string name="collapse_results_desc">Свернуть результаты</string>
+    <string name="more_results">и еще %1$d результатов...</string>
+    <string name="cancel_selection_desc">Отменить выделение</string>
+    <string name="select_all_desc">Выделить всё</string>
+    <string name="delete_selected_desc">Удалить выбранные</string>
+    <string name="loading_dots">Загрузка.</string>
+    <string name="loading_double_dots">Загрузка..</string>
+    <string name="loading_triple_dots">Загрузка...</string>
+    <string name="search_in_note_desc">Поиск по заметке</string>
+    <string name="note_info_title">Информация о заметке</string>
+    <string name="delete_note_question">Удалить заметку?</string>
+    <string name="cannot_undo">Это действие нельзя отменить</string>
+    <string name="search_in_note_placeholder">Поиск по заметке...</string>
+    
+    <!-- Trash Screen Strings -->
+    <string name="trash_info_desc">Информация о корзине</string>
+    <string name="clear_trash_desc">Очистить корзину</string>
+    <string name="deleted_note_title">Удаленная заметка</string>
+    <string name="note_is_empty">Заметка пуста</string>
+    <string name="trash_info_title">Информация о корзине</string>
+    <string name="clear_trash_title">Очистить корзину?</string>
+    
+    <!-- Constants -->
+    <string name="new_note_placeholder">Новая заметка</string>
+    
+    <!-- Additional ExportManager Messages -->
+    <string name="use_individual_md_button">Используйте кнопку "Отдельные MD файлы" в меню экспорта.</string>
+    <string name="data_too_large_200mb">Слишком большой объем данных для экспорта (%1$.1f MB). Максимум 200 MB. Используйте ZIP архив для сжатия больших объемов.</string>
+    <string name="data_too_large_10mb">Слишком большой объем данных для экспорта (%1$.1f MB). Максимум 10 MB.</string>
+    <string name="data_too_large_20mb">Слишком большой объем данных для архива (%1$.1f MB). Максимум 20 MB.</string>
+    <string name="disk_space_problem">Проблема с дисковым пространством</string>
+    <string name="compression_data_problem">Проблема с компрессией данных</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    
+    <!-- ThemeSelector Messages -->
+    <string name="change_theme_desc">Сменить тему: %1$s</string>
+    <string name="system_theme">Как в системе</string>
+    
+    <!-- SearchBar Messages -->  
+    <string name="search_placeholder">Поиск...</string>
+    <string name="close_search_desc">Закрыть поиск</string>
+    
+    <!-- Version History Title with Parameter -->
+    <string name="version_history_with_param">История версий</string>
+    
+    <!-- Database and System Messages -->
+    <string name="database_copy_failed">Не удалось скопировать файл базы данных</string>
+    <string name="database_missing_tables">База данных не содержит ожидаемые таблицы (note_metadata, note_content)</string>
+    <string name="database_structure_invalid">Некорректная структура базы данных: %1$s</string>
+    <string name="import_from_database_desc">Импорт из базы данных</string>
+    <string name="database_export_subject">База данных заметок - %1$s</string>
+    <string name="database_export_success">База данных заметок экспортирована успешно</string>
+    <string name="database_info_failed">Не удалось получить информацию о базе данных</string>
+    <string name="log_app_text">Логи приложения Ухват</string>
+    <string name="logs_summary">Всего записей: %1$d\nОшибки: %2$d\nПредупреждения: %3$d\nИнформация: %4$d</string>
+    <string name="logs_info_failed">Не удалось получить информацию о логах</string>
+    <string name="just_now">только что</string>
+    <string name="force_save_keyword">принудительное сохранение</string>
+    <string name="autosave_keyword">Автосохранение</string>
+    <string name="no_notes_to_export">Нет заметок для экспорта</string>
+    <string name="folder_access_failed">Не удалось получить доступ к папке</string>
+    
+    <!-- Version Export Strings -->
+    <string name="version_date_label">Дата: %1$s</string>
+    <string name="version_title_label">Название: %1$s</string>
+    <string name="version_description_label">Описание: %1$s</string>
+    
+    <!-- Import/Export Utility Messages -->
+    <string name="database_import_error">Ошибка импорта базы данных: %1$s</string>
+    <string name="database_import_from_batch">Импорт из базы данных</string>
+    <string name="select_db_file_prompt">Нажмите "Выбрать файл БД" для начала импорта.</string>
+    <string name="note_prefix_pattern">заметка_\\d+_</string>
+    <string name="folder_import_description">Импорт всех .md файлов из выбранной папки (включая подпапки). Каждый файл = отдельная заметка. Структура папок отражается в заголовках.</string>
+    <string name="archive_import_description">Импорт заметок из ZIP архива с .md файлами. Каждый файл = отдельная заметка. Поддержка UTF-8, автоматическое извлечение заголовков из имён файлов.</string>
+    <string name="version_example_description">Импорт архива</string>
+    <string name="error">Ошибка</string>
+    <string name="close">Закрыть</string>
+    
+    <!-- Additional Domain Layer Strings -->
+    <string name="imported_notes_count">Импортировано: %1$d заметок</string>
+    
+    <!-- Time Strings -->
+    <string name="minutes_ago">%1$d мин назад</string>
+    <string name="hours_ago">%1$d ч назад</string>
+    <string name="days_ago">%1$d дн назад</string>
+    
+    <!-- Selection Counter -->
+    <string name="selected_count">%1$d выбрано</string>
+    
+    <!-- Export/Import format strings -->
+    <string name="export_database">База данных SQLite</string>
+    <string name="export_individual_md">Отдельные MD файлы</string>
+    
+    <!-- Common UI strings -->
+    <string name="back">Назад</string>
+    <string name="undo">Отменить</string>
+    <string name="menu">Меню</string>
+    <string name="search">Поиск</string>
+    <string name="settings">Настройки</string>
+    <string name="clear">Очистить</string>
+    <string name="understand">Понятно</string>
+    <string name="previous">Предыдущий</string>
+    <string name="next">Следующий</string>
+    
+    <!-- Trash screen -->
+    <string name="trash_screen_title">Корзина</string>
+    <string name="trash_empty">Корзина пуста</string>
+    <string name="deleted_date">Удалена: %1$s</string>
+    <string name="unknown">Неизвестно</string>
+    
+    <!-- Note info -->
+    <string name="created">Создана</string>
+    <string name="modified">Изменения</string>
+    <string name="characters">Символов</string>
+    <string name="words">Слов</string>
+    <string name="lines">Строк</string>
+    
+    <!-- Theme strings -->
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Темная</string>
+    
+    <!-- Version history -->
+    <string name="version_history_title">История версий</string>
+    <string name="note_fallback">Заметка</string>
+    
+    <!-- Database export -->
+    <string name="database_export_header">База данных приложения "Заметки"</string>
+    
+    <!-- Version keywords for classification -->
+    <string name="rollback_keyword">откат</string>
+    <string name="backup_keyword">резервная</string>
+    
+    <!-- Accessibility content descriptions -->
+    <string name="note_selected">Заметка выбрана</string>
+    <string name="empty_version_history">Пустая история версий</string>
+</resources> 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colors exactly as in user specification -->
+    <color name="primary">#1c75d3</color>                    <!-- Area with "Notes" text, search, buttons -->
+    <color name="primary_dark">#1564c0</color>               <!-- Status bar area -->
+    <color name="search_background">#2483e2</color>          <!-- Search area color -->
+    
+    <!-- Dark theme -->
+    <color name="window_background_dark">#323231</color>     <!-- Notes and editing background color -->
+    <color name="text_color_primary_dark">#FFFFFF</color>    <!-- Notes and editing text color -->
+    <color name="dialog_background_dark">#0F0F0F</color>     <!-- Window color (export etc.) -->
+    <color name="dialog_text_dark">#FFFFFF</color>           <!-- Window text color -->
+    <color name="menu_background_dark">#272726</color>       <!-- Dropdown menu color -->
+    <color name="button_accent_dark">#1c75d3</color>         <!-- Some window button color -->
+    <color name="card_background_dark">#272726</color>       <!-- Version history card color -->
+    <color name="text_secondary_dark">#AAAAAA</color>       <!-- Grayer accent text -->
+    
+    <!-- Light theme -->
+    <color name="window_background_light">#FFFFFF</color>    <!-- Notes and editing background color -->
+    <color name="text_color_primary_light">#000000</color>   <!-- Notes and editing text color -->
+    <color name="dialog_background_light">#FFFFFF</color>    <!-- Window color (export etc.) -->
+    <color name="dialog_text_light">#000000</color>          <!-- Window text color -->
+    <color name="menu_background_light">#FFFFFF</color>      <!-- Dropdown menu color -->
+    <color name="button_accent_light">#1c75d3</color>        <!-- Some window button color -->
+    <color name="card_background_light">#F5F5F5</color>      <!-- Version history card color -->
+    <color name="text_secondary_light">#757575</color>      <!-- Grayer accent text -->
+</resources> 
