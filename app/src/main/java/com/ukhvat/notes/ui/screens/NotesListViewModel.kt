@@ -961,19 +961,21 @@ class NotesListViewModel(
     private fun changeLanguage(language: com.ukhvat.notes.domain.model.Language) {
         viewModelScope.launch {
             try {
-                // Use modern 2025 approach with proper APIs
-                localeManager.setLanguage(language)
-                
-                // Show language change notification
-                showToast(R.string.language_changed)
-                
-                // Close dialog - Activity will update automatically via configChanges
+                // Close dialog first for smoother transition
                 _uiState.value = _uiState.value.copy(
                     dialogState = DialogState.None
                 )
                 
-                        // Additional triggers not needed
-        // Android handles language change via configChanges
+                // Small delay for smoother visual transition
+                kotlinx.coroutines.delay(100)
+                
+                // Use modern 2025 approach with proper APIs
+                localeManager.setLanguage(language)
+                
+                // Show language change notification after transition
+                showToast(R.string.language_changed)
+                
+                // Activity will update automatically via configChanges
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = context.getString(R.string.language_change_error, e.message ?: "")

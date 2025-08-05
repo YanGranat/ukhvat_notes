@@ -1,5 +1,6 @@
 package com.ukhvat.notes
 
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -83,6 +84,12 @@ class MainActivity : AppCompatActivity() {
                 MainNavigation(viewModel = viewModel)
             }
         }
+    }
+    
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Handle language change smoothly without screen flashing
+        // The system will automatically update the UI with new locale
     }
 }
 

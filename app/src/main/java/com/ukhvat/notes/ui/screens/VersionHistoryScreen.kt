@@ -139,13 +139,6 @@ fun VersionHistoryScreen(
                             color = colors.textSecondary,
                             fontSize = 16.sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.versions_auto_created),
-                            color = colors.textSecondary,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(horizontal = 32.dp)
-                        )
                     }
                 }
             }
@@ -305,13 +298,7 @@ fun VersionHistoryScreen(
            shape = RoundedCornerShape(12.dp),
            title = { 
                Text(
-                   stringResource(R.string.delete_version), 
-                   color = colors.dialogText
-               ) 
-           },
-           text = { 
-               Text(
-                   stringResource(R.string.delete_version_confirm),
+                   stringResource(R.string.delete_version_confirm), 
                    color = colors.dialogText
                ) 
            },
