@@ -27,8 +27,8 @@ import com.ukhvat.notes.domain.util.Toaster
  * 
  * Supported import formats:
  * - SQLite database (.db files) - full recovery with versions
- * - ZIP archives (.zip) - .md file extraction with UTF-8 support
- * - Folders with MD files - recursive structure scanning
+ * - ZIP archives (.zip) - .md and .txt file extraction with UTF-8 support
+ * - Folders with MD and TXT files - recursive structure scanning
  * 
  * Data security and integrity:
  * - Automatic ID conflict resolution via timestamp-based generation
@@ -38,7 +38,7 @@ import com.ukhvat.notes.domain.util.Toaster
  *
  * @param databaseImporter Importer for SQLite databases
  * @param archiveImporter Importer for ZIP archives
- * @param folderImporter Importer for folders with MD files
+ * @param folderImporter Importer for folders with MD and TXT files
  * @param toaster Service for user notifications
  */
 class ImportManager(

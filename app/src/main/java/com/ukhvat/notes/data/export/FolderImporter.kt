@@ -11,9 +11,9 @@ import kotlinx.coroutines.withContext
 // Removed Hilt imports for Koin migration
 
 /**
- * Notes importer from folder with individual Markdown files.
+ * Notes importer from folder with individual Markdown and text files.
  * 
- * Scans selected folder and imports all .md files as separate notes.
+ * Scans selected folder and imports all .md and .txt files as separate notes.
  * Uses Storage Access Framework for file access.
  * 
  * Architecture solution - Individual import:
@@ -49,7 +49,7 @@ class FolderImporter(
 ) {
 
     /**
-     * Imports all .md files from selected folder.
+     * Imports all .md and .txt files from selected folder.
      * 
      * @param folderUri Folder URI for import
      * @return Number of successfully imported notes
@@ -65,7 +65,7 @@ class FolderImporter(
             var importedCount = 0
             val currentTime = System.currentTimeMillis()
             
-            // Recursively import all .md files with instant display
+            // Recursively import all .md and .txt files with instant display
             importedCount += importFromDocumentFolder(folder, "", currentTime, importedCount)
             
             importedCount
@@ -77,7 +77,7 @@ class FolderImporter(
     }
 
     /**
-     * Recursively imports .md files from DocumentFile folder with instant display.
+     * Recursively imports .md and .txt files from DocumentFile folder with instant display.
      * 
      * @param folder Folder for scanning
      * @param pathPrefix Path prefix for nested folders
@@ -112,8 +112,8 @@ class FolderImporter(
                         )
                     }
                     
-                    // Import .md files with instant UI appearance
-                    file.isFile && file.name?.endsWith(".md", ignoreCase = true) == true -> {
+                    // Import .md and .txt files with instant UI appearance
+                    file.isFile && (file.name?.endsWith(".md", ignoreCase = true) == true || file.name?.endsWith(".txt", ignoreCase = true) == true) -> {
                         try {
                             // Read file content
                             val content = context.contentResolver.openInputStream(file.uri)?.use { stream ->
@@ -123,7 +123,12 @@ class FolderImporter(
                             // Skip empty files
                             if (content.isNotBlank()) {
                                 // Extract title considering path
-                                val fileName = file.name?.removeSuffix(".md") ?: context.resources.getString(R.string.note_fallback)
+                                val rawFileName = file.name ?: context.resources.getString(R.string.note_fallback)
+                                val fileName = when {
+                                    rawFileName.endsWith(".md", ignoreCase = true) -> rawFileName.removeSuffix(".md")
+                                    rawFileName.endsWith(".txt", ignoreCase = true) -> rawFileName.removeSuffix(".txt")
+                                    else -> rawFileName
+                                }
                                 val fullTitle = if (pathPrefix.isNotEmpty()) {
                                     "$pathPrefix/$fileName"
                                 } else {

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import com.ukhvat.notes.R
 import org.koin.androidx.compose.koinViewModel
@@ -336,6 +337,10 @@ private fun DeletedNoteItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                elevation = if (ColorManager.isDarkTheme()) 0.dp else 2.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
             .clickable { onNoteClick() },
         colors = CardDefaults.cardColors(
             containerColor = colors.cardBackground

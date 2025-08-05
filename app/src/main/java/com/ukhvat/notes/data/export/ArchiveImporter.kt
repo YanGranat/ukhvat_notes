@@ -13,10 +13,10 @@ import java.util.zip.ZipInputStream
 // Removed Hilt imports for Koin migration
 
 /**
- * Notes importer from ZIP archives with Markdown files.
+ * Notes importer from ZIP archives with Markdown and text files.
  * 
  * Supports note import from ZIP archives created by export function.
- * Each .md file in archive becomes separate note.
+ * Each .md and .txt file in archive becomes separate note.
  * 
  * Architecture solution - Individual import:
  * Uses repository.insertNote() for each file from archive instead of
@@ -53,7 +53,7 @@ class ArchiveImporter(
 ) {
 
     /**
-     * Imports notes from ZIP archive with Markdown files.
+     * Imports notes from ZIP archive with Markdown and text files.
      * 
      * @param uri ZIP file URI for import
      * @return Number of successfully imported notes
@@ -68,8 +68,8 @@ class ArchiveImporter(
                     var entry = zipStream.nextEntry
                     
                     while (entry != null) {
-                        // Process only .md files, skip folders
-                        if (!entry.isDirectory && entry.name.endsWith(".md", ignoreCase = true)) {
+                        // Process only .md and .txt files, skip folders
+                        if (!entry.isDirectory && (entry.name.endsWith(".md", ignoreCase = true) || entry.name.endsWith(".txt", ignoreCase = true))) {
                             try {
                                 // Read file content
                                 val content = zipStream.readBytes().toString(Charsets.UTF_8)

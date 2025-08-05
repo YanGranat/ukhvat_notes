@@ -302,8 +302,8 @@
     <string name="database_import_from_batch">Import from database</string>
     <string name="select_db_file_prompt">Click "Select DB file" to start import.</string>
     <string name="note_prefix_pattern">заметка_\\d+_</string>
-    <string name="folder_import_description">Import all .md files from selected folder (including subfolders). Each file = separate note. Folder structure reflected in titles.</string>
-    <string name="archive_import_description">Import notes from ZIP archive with .md files. Each file = separate note. UTF-8 support, automatic title extraction from file names.</string>
+    <string name="folder_import_description">Import all .md and .txt files from selected folder (including subfolders). Each file = separate note. Folder structure reflected in titles.</string>
+    <string name="archive_import_description">Import notes from ZIP archive with .md and .txt files. Each file = separate note. UTF-8 support, automatic title extraction from file names.</string>
     <string name="version_example_description">Archive import</string>
     <string name="error">Error</string>
     <string name="close">Close</string>
