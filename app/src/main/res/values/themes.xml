@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Ukhvat" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Using new color scheme -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:navigationBarColor">@color/window_background_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources> 

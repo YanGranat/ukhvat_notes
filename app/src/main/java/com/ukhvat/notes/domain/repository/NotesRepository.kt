@@ -1,0 +1,164 @@
+package com.ukhvat.notes.domain.repository
+
+import com.ukhvat.notes.domain.model.Note
+import com.ukhvat.notes.domain.model.NoteVersion
+import com.ukhvat.notes.ui.theme.ThemePreference
+import kotlinx.coroutines.flow.Flow
+
+interface NotesRepository {
+    
+    // ============ Core note operations ============
+    
+    /**
+     * Get all notes (metadata only for list display)
+     * Very fast operation - content not loaded
+     */
+    fun getAllNotes(): Flow<List<Note>>
+
+    /**
+     * Get note with full content (for editing)
+     */
+    suspend fun getNoteById(id: Long): Note?
+
+    /**
+     * Get notes with full content by ID list (for export)
+     */
+    suspend fun getNotesWithContentByIds(ids: List<Long>): List<Note>
+
+    /**
+     * Create new note
+     */
+    suspend fun insertNote(note: Note): Long
+
+    /**
+     * Update note (metadata + content)
+     */
+    suspend fun updateNote(note: Note)
+
+    /**
+     * Delete note (SOFT DELETE - move to trash)
+     */
+    suspend fun deleteNote(note: Note)
+    suspend fun deleteNoteById(id: Long)
+    suspend fun deleteNotesByIds(ids: List<Long>)  // New method for batch deletion
+
+    // ============ Batch operations for notes ============
+    
+    /**
+     * Bulk note creation (async)
+     * Optimized for importing large volumes of notes
+     * @param notes List of notes to create
+     * @return List of created note IDs
+     */
+    suspend fun insertNotesInBatch(notes: List<Note>): List<Long>
+    
+    /**
+     * Bulk note updates (async)
+     * Efficient for synchronizing multiple changes
+     * @param notes List of notes to update
+     */
+    suspend fun updateNotesInBatch(notes: List<Note>)
+    
+    /**
+     * Optimized note update with versioning necessity check
+     * Combines updateNote + shouldCreateVersion into one optimized query
+     * @param note Note to update
+     * @param newContent New content for versioning check
+     * @return true if version should be created, false otherwise
+     */
+    suspend fun updateNoteWithVersionCheck(note: Note, newContent: String): Boolean
+
+
+    // ============ Search ============
+    
+    /**
+     * Search notes by titles and content
+     * Will be replaced with separate FTS methods in future
+     */
+    suspend fun searchNotes(query: String): List<Note>
+
+    /**
+     * Synchronous retrieval of all notes
+     * Used for batch operations and version cleanup
+     */
+    fun getAllNotesSync(): List<Note>
+
+
+
+    // ============ Theme settings ============
+    
+    suspend fun saveThemePreference(themePreference: ThemePreference)
+    suspend fun getThemePreference(): ThemePreference
+
+    // ============ Note version history ============
+    
+    fun getVersionsForNote(noteId: Long): Flow<List<NoteVersion>>
+    suspend fun getVersionsForNoteList(noteId: Long): List<NoteVersion>
+    suspend fun createVersion(noteId: Long, content: String, changeDescription: String? = null)
+    suspend fun createVersionForced(noteId: Long, content: String, changeDescription: String? = null)
+    suspend fun shouldCreateVersion(noteId: Long, newContent: String): Boolean
+    suspend fun getVersionById(versionId: Long): NoteVersion?
+    suspend fun deleteVersion(versionId: Long): Boolean
+    suspend fun updateVersionCustomName(versionId: Long, customName: String?)
+
+    // ============ Batch operations for versions ============
+    
+    /**
+     * Bulk version creation
+     * Used when importing notes with version history
+     * @param versions List of (noteId, content) pairs for version creation
+     * @param changeDescription Change description for all versions
+     * @return List of created version IDs
+     */
+    suspend fun createVersionsInBatch(versions: List<Pair<Long, String>>, changeDescription: String? = null): List<Long>
+    
+    /**
+     * Bulk cleanup of old versions
+     * Optimizes cleanup for multiple notes simultaneously
+     * @param noteIds List of note IDs for version cleanup
+     * @param olderThanDays Delete versions older than specified days
+     */
+    suspend fun cleanupOldVersionsBatch(noteIds: List<Long>, olderThanDays: Int = 30)
+
+    // ============ TRASH - SOFT DELETE SYSTEM ============
+    
+    /**
+     * Get all deleted notes (trash)
+     * @return Flow with list of deleted notes, sorted by deletion date
+     */
+    fun getDeletedNotes(): Flow<List<Note>>
+    
+    /**
+     * Restore note from trash
+     * Moves note back to active, clears deletion flags
+     * @param id Note ID for restoration
+     */
+    suspend fun restoreNote(id: Long)
+    
+    /**
+     * Permanently delete note from trash
+     * Complete deletion of note and all its versions from DB
+     * @param id Note ID for final deletion
+     */
+    suspend fun permanentlyDeleteNote(id: Long)
+    
+    /**
+     * Clear entire trash
+     * Permanently deletes ALL notes from trash
+     */
+    suspend fun clearTrash()
+    
+    /**
+     * Automatic trash cleanup from old notes
+     * Removes notes that have been in trash longer than specified time
+     * Default 30 days (2_592_000_000 ms)
+     * @param daysOld Number of days after which notes are automatically deleted
+     */
+    suspend fun autoCleanupTrash(daysOld: Int = 30)
+    
+    /**
+     * Get number of notes in trash
+     * @return Number of deleted notes
+     */
+    suspend fun getTrashCount(): Int
+} 
