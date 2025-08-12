@@ -126,7 +126,7 @@ fun ArchiveScreen(
                         showPreviewDialog = null
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = colors.primary),
-                    modifier = Modifier.offset(x = (-34).dp)
+                    modifier = Modifier.offset(x = (-36).dp)
                 ) {
                     Text(stringResource(R.string.restore_from_archive))
                 }
