@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -22,12 +24,25 @@ android {
         }
     }
 
+    // Read signing config from local signing.properties (not in VCS)
+    val signingPropsFile = rootProject.file("signing.properties")
+    val signingProps = Properties().apply {
+        if (signingPropsFile.exists()) signingPropsFile.inputStream().use { load(it) }
+    }
+    val hasSigningProps = signingPropsFile.exists()
+
     signingConfigs {
         create("release") {
-            keyAlias = "ukhvat"
-            keyPassword = "ukhvat123"
-            storeFile = file("../ukhvat-release-key.jks")
-            storePassword = "ukhvat123"
+            if (hasSigningProps) {
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+                val storePath = signingProps.getProperty("storeFile")
+                if (storePath != null) {
+                    val store = java.io.File(storePath)
+                    storeFile = if (store.isAbsolute) store else rootProject.file(storePath)
+                }
+                storePassword = signingProps.getProperty("storePassword")
+            }
         }
     }
 
@@ -43,7 +58,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (hasSigningProps) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     

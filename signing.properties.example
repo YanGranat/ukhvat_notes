@@ -1,0 +1,11 @@
+keyAlias=
+keyPassword=
+storeFile=
+storePassword=
+
+# Example:
+# keyAlias=ukhvat
+# keyPassword=yourStrongPassword
+# storeFile=keys/ukhvat-release-key.jks
+# storePassword=yourStrongPassword
+
