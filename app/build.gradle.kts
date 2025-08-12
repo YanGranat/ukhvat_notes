@@ -25,9 +25,9 @@ android {
     signingConfigs {
         create("release") {
             keyAlias = "ukhvat"
-            keyPassword = "***REMOVED***"
+            keyPassword = "ukhvat123"
             storeFile = file("../ukhvat-release-key.jks")
-            storePassword = "***REMOVED***"
+            storePassword = "ukhvat123"
         }
     }
 
