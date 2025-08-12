@@ -54,6 +54,10 @@ captures/
 *.jks
 *.keystore
 ukhvat-release-key.jks
+# Local signing config
+signing.properties
+# Local keystore directory
+keys/
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild

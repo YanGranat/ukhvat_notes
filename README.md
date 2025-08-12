@@ -53,6 +53,18 @@ cd ukhvat_notes
 ./gradlew assembleDebug
 ```
 
+### Secure release signing
+1. Create `signing.properties` in project root (DO NOT commit):
+```
+keyAlias=ukhvat
+keyPassword=********
+storeFile=keys/ukhvat-release-key.jks
+storePassword=********
+```
+2. Place the keystore at the given path.
+3. Build release: `./gradlew assembleRelease` (APK) or `./gradlew bundleRelease` (AAB).
+4. `signing.properties` and `keys/` are git-ignored.
+
 ## 🏗️ Technical Details
 
 **Architecture:** Clean MVVM with Repository pattern  

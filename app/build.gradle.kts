@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.io.File
 
 plugins {
     id("com.android.application")
@@ -38,7 +39,7 @@ android {
                 keyPassword = signingProps.getProperty("keyPassword")
                 val storePath = signingProps.getProperty("storeFile")
                 if (storePath != null) {
-                    val store = java.io.File(storePath)
+                    val store = File(storePath)
                     storeFile = if (store.isAbsolute) store else rootProject.file(storePath)
                 }
                 storePassword = signingProps.getProperty("storePassword")

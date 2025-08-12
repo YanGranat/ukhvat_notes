@@ -52,6 +52,18 @@ cd ukhvat_notes
 ./gradlew assembleDebug
 ```
 
+### Подпись релизной сборки (безопасно)
+1. Создайте локальный файл `signing.properties` в корне проекта (НЕ коммитить):
+```
+keyAlias=ukhvat
+keyPassword=********
+storeFile=keys/ukhvat-release-key.jks
+storePassword=********
+```
+2. Разместите keystore по указанному пути (например, `keys/ukhvat-release-key.jks`).
+3. Сборка релиза: `./gradlew assembleRelease` (APK) или `./gradlew bundleRelease` (AAB для Play).
+4. Файлы `signing.properties` и `keys/` игнорируются git и не попадают в репозиторий.
+
 ## 🏗️ Технические детали
 
 **Архитектура:** Чистая MVVM с паттерном Repository  
