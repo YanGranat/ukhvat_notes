@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NoteContentEntity::class,   // Новая: тяжелое содержимое  
         NoteVersionEntity::class    // Остается: история версий
     ],
-    version = 9,  // Версия 9: добавлен флаг избранного isFavorite и индекс isFavorite
+    version = 10,  // Версия 10: архивирование (isArchived, archivedAt) + индекс
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +29,15 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE note_metadata ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_isFavorite ON note_metadata(isFavorite)")
+            }
+        }
+
+        // Миграция 9->10: архивирование заметок
+        val MIGRATION_9_10: Migration = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE note_metadata ADD COLUMN isArchived INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE note_metadata ADD COLUMN archivedAt INTEGER")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_isArchived ON note_metadata(isArchived)")
             }
         }
     }

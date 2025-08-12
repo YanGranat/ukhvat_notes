@@ -12,7 +12,9 @@ data class Note(
     val updatedAt: Long,
     val isFavorite: Boolean = false,
     val isDeleted: Boolean = false,   // Trash flag (soft delete)
-    val deletedAt: Long? = null       // Deletion time for auto-cleanup
+    val deletedAt: Long? = null,      // Deletion time for auto-cleanup
+    val isArchived: Boolean = false,  // Archive flag
+    val archivedAt: Long? = null      // Archive time
 ) {
     val title: String
         get() = cachedTitle ?: NoteUtils.generateTitle(content, createdAt)
@@ -22,6 +24,9 @@ data class Note(
     
     val formattedDeletedDate: String?
         get() = deletedAt?.let { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(it)) }
+
+    val formattedArchivedDate: String?
+        get() = archivedAt?.let { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(it)) }
 }
 
 /**

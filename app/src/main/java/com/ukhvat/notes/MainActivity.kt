@@ -27,6 +27,7 @@ import com.ukhvat.notes.ui.screens.NotesListScreen
 import com.ukhvat.notes.ui.screens.NoteEditScreen
 import com.ukhvat.notes.ui.screens.VersionHistoryScreen
 import com.ukhvat.notes.ui.screens.TrashScreen
+import com.ukhvat.notes.ui.screens.ArchiveScreen
 
 
 
@@ -141,9 +142,8 @@ fun MainNavigation(
                                     // New note is created via NotesListViewModel.createNewNote()
         // This function should not be called
                         },
-                        onNavigateToTrash = {
-                            navController.navigate("trash")
-                        },
+                        onNavigateToTrash = { navController.navigate("trash") },
+                        onNavigateToArchive = { navController.navigate("archive") },
                         shouldClearSearch = shouldClearSearch,
                         onClearSearchHandled = {
                             // Clear flag after processing
@@ -241,6 +241,12 @@ fun MainNavigation(
                         onNavigateBack = {
                             navController.popBackStack()
                         }
+                    )
+                }
+
+                composable("archive") {
+                    ArchiveScreen(
+                        onNavigateBack = { navController.popBackStack() }
                     )
                 }
             }

@@ -170,6 +170,7 @@ class NoteEditViewModel(
             is NoteEditEvent.DeleteNote -> deleteNote()
             is NoteEditEvent.ExportNote -> exportNote()
             is NoteEditEvent.ToggleFavorite -> toggleFavorite()
+            is NoteEditEvent.MoveToArchive -> moveToArchive()
             is NoteEditEvent.ShowNoteInfo -> showNoteInfo()
             is NoteEditEvent.ShowVersionHistory -> showVersionHistory()
             is NoteEditEvent.StartSearch -> startSearch()
@@ -810,6 +811,24 @@ class NoteEditViewModel(
         }
     }
 
+    /** Move current note to archive and navigate back */
+    private fun moveToArchive() {
+        val noteId = currentNoteId
+        viewModelScope.launch {
+            try {
+                repository.moveToArchive(noteId)
+                _uiState.value = _uiState.value.copy(
+                    shouldNavigateBack = true,
+                    shouldScrollToTop = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
 
 
     
@@ -978,6 +997,7 @@ sealed class NoteEditEvent {
     object DeleteNote : NoteEditEvent()
     object ExportNote : NoteEditEvent()
     object ToggleFavorite : NoteEditEvent()
+    object MoveToArchive : NoteEditEvent()
     object ShowNoteInfo : NoteEditEvent()
     object ShowVersionHistory : NoteEditEvent()
     object StartSearch : NoteEditEvent()

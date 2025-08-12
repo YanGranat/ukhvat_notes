@@ -1,11 +1,13 @@
 package com.ukhvat.notes.di
 
 import com.ukhvat.notes.data.datasource.NoteDataSourceImpl
+import com.ukhvat.notes.data.datasource.ArchiveDataSourceImpl
 import com.ukhvat.notes.data.datasource.SearchDataSourceImpl
 import com.ukhvat.notes.data.datasource.VersionDataSourceImpl
 import com.ukhvat.notes.data.datasource.TrashDataSourceImpl
 import com.ukhvat.notes.data.datasource.PreferencesDataSourceImpl
 import com.ukhvat.notes.domain.datasource.NoteDataSource
+import com.ukhvat.notes.domain.datasource.ArchiveDataSource
 import com.ukhvat.notes.domain.datasource.SearchDataSource
 import com.ukhvat.notes.domain.datasource.VersionDataSource
 import com.ukhvat.notes.domain.datasource.TrashDataSource
@@ -74,6 +76,14 @@ val dataSourceModule = module {
             contentDao = get(),   // NoteContentDao  
             versionDao = get()    // NoteVersionDao
         ) 
+    }
+
+    // Archive DataSource
+    single<ArchiveDataSource> {
+        ArchiveDataSourceImpl(
+            metadataDao = get(),
+            contentDao = get()
+        )
     }
     
     /**

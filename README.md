@@ -27,6 +27,7 @@
 - **🌓 Theme support** - Dark and light modes
 - **🌍 Bilingual** - English and Russian interface
 - **⭐ Favorites** - Mark important notes and see them highlighted in the list
+- **🗄️ Archive (new)** - Archive/unarchive notes (hidden from main list and search), Archive screen with preview, per-note Restore/Delete (to Trash), and bulk actions (Restore all / Delete all)
 
 ## 📱 What it does
 
@@ -57,6 +58,7 @@ cd ukhvat_notes
 **Architecture:** Clean MVVM with Repository pattern  
 **Database:** Room with three-table optimization  
 **Migrations:** Non-destructive schema migrations (e.g., v8→v9 adds Favorites without data loss)  
+v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 **UI:** Jetpack Compose with Material Design 3  
 **Language:** 100% Kotlin  
 **DI:** Koin for lightweight dependency injection  
@@ -65,6 +67,7 @@ cd ukhvat_notes
 - **Reactive data flow** with StateFlow and Compose
 - **Optimized database queries** - separate metadata/content tables
 - **Batch operations** for high-performance import/export
+- **Archive data flow** - new `ArchiveDataSource`, repository methods, and UI navigation
 - **Adaptive text processing** with advanced search algorithms
 
 ## 📄 Export & Import

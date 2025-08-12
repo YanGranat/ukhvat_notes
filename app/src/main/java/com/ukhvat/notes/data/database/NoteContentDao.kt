@@ -70,7 +70,7 @@ interface NoteContentDao {
         FROM note_metadata m 
         INNER JOIN note_content c ON m.id = c.noteId 
         WHERE c.content LIKE '%' || :query || '%' 
-        AND m.isDeleted = 0
+        AND m.isDeleted = 0 AND m.isArchived = 0
         ORDER BY m.updatedAt DESC
     """)
     suspend fun searchNotesWithContent(query: String): List<NoteWithContentEntity>

@@ -50,7 +50,7 @@ val appModule = module {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-         .addMigrations(AppDatabase.MIGRATION_8_9)
+         .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
          .setQueryExecutor(Dispatchers.IO.asExecutor())  // DB operations in background thread
          .build()
     }
@@ -67,6 +67,7 @@ val appModule = module {
             searchDataSource = get(),      // SearchDataSource (CRITICAL: preserves LRU cache)
             versionDataSource = get(),     // VersionDataSource  
             trashDataSource = get(),       // TrashDataSource
+            archiveDataSource = get(),     // ArchiveDataSource
             preferencesDataSource = get()  // PreferencesDataSource
         )
     }
@@ -121,6 +122,10 @@ val appModule = module {
     // ViewModels (migrating one by one)
     factory<com.ukhvat.notes.ui.screens.TrashViewModel> { 
         com.ukhvat.notes.ui.screens.TrashViewModel(get(), get()) // NotesRepository + Toaster
+    }
+
+    factory<com.ukhvat.notes.ui.screens.ArchiveViewModel> {
+        com.ukhvat.notes.ui.screens.ArchiveViewModel(get(), get()) // NotesRepository + Toaster
     }
     
     factory<com.ukhvat.notes.ui.screens.VersionHistoryViewModel> { 

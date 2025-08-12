@@ -112,7 +112,9 @@ class NoteDataSourceImpl(
                     updatedAt = metadata.updatedAt,
                     isFavorite = metadata.isFavorite,
                     isDeleted = metadata.isDeleted,
-                    deletedAt = metadata.deletedAt
+                    deletedAt = metadata.deletedAt,
+                    isArchived = metadata.isArchived,
+                    archivedAt = metadata.archivedAt
                 )
             }
         }

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.*
@@ -78,6 +79,7 @@ fun NotesListScreen(
     onNavigateToNote: (Long, SearchResultInfo?) -> Unit,
     onNavigateToNewNote: () -> Unit,
     onNavigateToTrash: () -> Unit = {},
+    onNavigateToArchive: () -> Unit = {},
     shouldClearSearch: Boolean = false,
     onClearSearchHandled: () -> Unit = {},
     shouldScrollToTop: Boolean = false,
@@ -127,6 +129,7 @@ fun NotesListScreen(
         },
         onNavigateToNote = onNavigateToNote,
         onNavigateToTrash = onNavigateToTrash,
+        onNavigateToArchive = onNavigateToArchive,
         onNavigationHandled = viewModel::onNavigationHandled,
         onClearError = viewModel::clearError
     )
@@ -141,6 +144,7 @@ private fun NotesListContent(
     onNoteClick: (Long) -> Unit,
     onNavigateToNote: (Long, SearchResultInfo?) -> Unit,
     onNavigateToTrash: () -> Unit,
+    onNavigateToArchive: () -> Unit,
     onNavigationHandled: () -> Unit,
     onClearError: () -> Unit
 ) {
@@ -248,7 +252,8 @@ private fun NotesListContent(
                 onThemeClick = { showThemeDialog = true },
                 onEvent = onEvent,
                 uiState = uiState,
-                onNavigateToTrash = onNavigateToTrash
+                onNavigateToTrash = onNavigateToTrash,
+                onNavigateToArchive = onNavigateToArchive
             )
 
             // Search Field
@@ -894,7 +899,8 @@ private fun NotesTopAppBar(
     onThemeClick: () -> Unit,
     onEvent: (NotesListEvent) -> Unit,
     uiState: NotesListUiState,
-    onNavigateToTrash: () -> Unit
+    onNavigateToTrash: () -> Unit,
+    onNavigateToArchive: () -> Unit
 ) {
     val colors = rememberGlobalColors()
                    if (isSelectionMode) {
@@ -906,10 +912,10 @@ private fun NotesTopAppBar(
           ) {
               TopAppBar(
                   title = {
-                                                                                                                   Text(
+                  Text(
                           text = stringResource(R.string.selected_count, selectedCount),
                           color = Color.White,
-                          fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                          fontSize = MaterialTheme.typography.titleLarge.fontSize * 0.85f,
                           fontWeight = FontWeight.Normal
                       )
               },
@@ -923,48 +929,23 @@ private fun NotesTopAppBar(
                  }
              },
              actions = {
-                  IconButton(
-                      onClick = { onEvent(NotesListEvent.SelectAllNotes) }
-                  ) {
-                     Icon(
-                         painter = painterResource(id = R.drawable.ic_select_all),
-                         contentDescription = stringResource(R.string.select_all_desc),
-                         tint = Color.White,
-                          modifier = Modifier.size(24.dp)
-                     )
+                 // Order: Select All → Export → Favorite → Archive → Delete
+                 IconButton(onClick = { onEvent(NotesListEvent.SelectAllNotes) }, modifier = Modifier.offset(x = 6.dp)) {
+                     Icon(painter = painterResource(id = R.drawable.ic_select_all), contentDescription = stringResource(R.string.select_all_desc), tint = Color.White, modifier = Modifier.size(24.dp))
                  }
-                  // Toggle favorites for selected notes
-                  IconButton(
-                      onClick = { onEvent(NotesListEvent.ToggleFavoriteForSelected) },
-                      modifier = Modifier.size(36.dp)
-                  ) {
-                      Icon(
-                          painter = painterResource(id = R.drawable.ic_favorite),
-                          contentDescription = stringResource(R.string.add_to_favorites),
-                          tint = Color.White,
-                          modifier = Modifier.size(20.dp)
-                      )
+                  IconButton(onClick = { onEvent(NotesListEvent.ShowExportOptionsForSelected) }, modifier = Modifier.offset(x = 2.dp)) {
+                      Icon(painter = painterResource(id = R.drawable.ic_export), contentDescription = stringResource(R.string.export_selected_desc), tint = Color.White, modifier = Modifier.size(24.dp))
                   }
-                   IconButton(
-                       onClick = { onEvent(NotesListEvent.ShowExportOptionsForSelected) }
-                   ) {
-                      Icon(
-                          painter = painterResource(id = R.drawable.ic_export),
-                          contentDescription = stringResource(R.string.export_selected_desc),
-                          tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                      )
-                  }
-                  IconButton(
-                      onClick = { onEvent(NotesListEvent.DeleteSelectedNotes) }
-                  ) {
-                      Icon(
-                          imageVector = Icons.Default.Delete,
-                          contentDescription = stringResource(R.string.delete_selected_desc),
-                          tint = Color.White
-                      )
-                  }
-                           },
+                  IconButton(onClick = { onEvent(NotesListEvent.ToggleFavoriteForSelected) }, modifier = Modifier.size(36.dp).offset(x = 2.dp)) {
+                     Icon(painter = painterResource(id = R.drawable.ic_favorite), contentDescription = stringResource(R.string.add_to_favorites), tint = Color.White, modifier = Modifier.size(20.dp))
+                 }
+                   IconButton(onClick = { onEvent(NotesListEvent.MoveSelectedToArchive) }, modifier = Modifier.offset(x = 2.dp)) {
+                       Icon(painter = painterResource(id = R.drawable.ic_archive), contentDescription = stringResource(R.string.move_to_archive), tint = Color.White, modifier = Modifier.size(22.dp))
+                   }
+                  IconButton(onClick = { onEvent(NotesListEvent.DeleteSelectedNotes) }) {
+                     Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.delete_selected_desc), tint = Color.White)
+                 }
+             },
                            colors = TopAppBarDefaults.topAppBarColors(
                   containerColor = Color(0xFF1c75d3)
               )
@@ -979,10 +960,10 @@ private fun NotesTopAppBar(
           ) {
               TopAppBar(
                   title = {
-                                                                                                                   Text(
+                  Text(
                           text = stringResource(R.string.notes),
                           color = Color.White, 
-                          fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                          fontSize = MaterialTheme.typography.titleLarge.fontSize * 0.85f,
                           fontWeight = FontWeight.Normal
                       )
               },
@@ -1015,12 +996,20 @@ private fun NotesTopAppBar(
                    shadowElevation = if (ColorManager.isDarkTheme()) 0.dp else 4.dp,
                    shape = RoundedCornerShape(8.dp),
                    containerColor = colors.menuBackground
-                   ) {
-                     DropdownMenuItem(
+                    ) {
+                     // Вернули стандартные отступы пунктов меню
+                      DropdownMenuItem(
                          text = { Text(stringResource(R.string.language), color = colors.menuText) },
                          onClick = {
                              onShowMenuChange(false)
                              onEvent(NotesListEvent.ShowLanguageDialog)
+                         }
+                      )
+                     DropdownMenuItem(
+                         text = { Text(stringResource(R.string.import_notes_menu), color = colors.menuText) },
+                         onClick = {
+                             onShowMenuChange(false)
+                             onEvent(NotesListEvent.ShowImportOptions)
                          }
                      )
                      DropdownMenuItem(
@@ -1031,19 +1020,19 @@ private fun NotesTopAppBar(
                          }
                      )
                      DropdownMenuItem(
-                         text = { Text(stringResource(R.string.import_notes_menu), color = colors.menuText) },
-                         onClick = {
-                             onShowMenuChange(false)
-                             onEvent(NotesListEvent.ShowImportOptions)
-                         }
-                     )
-                     DropdownMenuItem(
                          text = { Text(stringResource(R.string.about_app), color = colors.menuText) },
                          onClick = {
                              onShowMenuChange(false)
                              onEvent(NotesListEvent.ShowAboutDialog)
                          }
-                     )
+                      )
+                      DropdownMenuItem(
+                         text = { Text(stringResource(R.string.archive), color = colors.menuText) },
+                         onClick = {
+                             onShowMenuChange(false)
+                             onNavigateToArchive()
+                         }
+                      )
                      DropdownMenuItem(
                          text = { Text(stringResource(R.string.trash), color = colors.menuText) },
                          onClick = {

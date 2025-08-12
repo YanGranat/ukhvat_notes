@@ -121,7 +121,7 @@
     <string name="export_plain_text_sharing">Экспортировать заметку</string>
     <string name="export_database_note">Экспорт базы данных SQLite</string>
     <string name="export_database_available">Экспорт базы данных доступен только для общего экспорта (всех заметок)</string>
-    <string name="export_selected_desc">Экспортировать выбранные</string>
+    <!-- duplicate removed: export_selected_desc defined later -->
     
     <!-- Import Dialog Strings -->
     <string name="select_import_source">Выберите источник импорта</string>
@@ -234,9 +234,8 @@
     <string name="expand_results_desc">Развернуть результаты</string>
     <string name="collapse_results_desc">Свернуть результаты</string>
     <string name="more_results">и еще %1$d результатов...</string>
-    <string name="cancel_selection_desc">Отменить выделение</string>
-    <string name="select_all_desc">Выделить всё</string>
-    <string name="delete_selected_desc">Удалить выбранные</string>
+    <!-- duplicate removed: cancel_selection_desc/select_all_desc defined later -->
+    <!-- duplicate removed: delete_selected_desc defined later -->
     <string name="loading_dots">Загрузка.</string>
     <string name="loading_double_dots">Загрузка..</string>
     <string name="loading_triple_dots">Загрузка...</string>
@@ -341,6 +340,20 @@
     <string name="trash_empty">Корзина пуста</string>
     <string name="deleted_date">Удалена: %1$s</string>
     <string name="unknown">Неизвестно</string>
+
+    <!-- Archive -->
+    <string name="archive">Архив</string>
+    <string name="move_to_archive">Убрать в архив</string>
+    <string name="restore_from_archive">Восстановить</string>
+    <string name="archive_screen_title">Архив</string>
+    <string name="archive_empty">Архив пуст</string>
+    <string name="archived_date">Архивировано: %1$s</string>
+    <string name="archive_delete_to_trash">Удалить</string>
+    <string name="restore_all">Восстановить всё</string>
+    <string name="delete_all_soft">Удалить всё</string>
+    <string name="delete_all_soft_confirm">Отправить все архивные заметки в корзину?</string>
+    <string name="restored_all">Все заметки восстановлены</string>
+    <string name="moved_all_to_trash">Все заметки отправлены в корзину</string>
     
     <!-- Note info -->
     <string name="created">Создана</string>
@@ -370,5 +383,10 @@
 
     <!-- Favorites -->
     <string name="add_to_favorites">Добавить в избранное</string>
+    <!-- duplicate removed: remove_from_favorites defined later -->
+    <string name="export_selected_desc">Экспортировать выбранные</string>
+    <string name="delete_selected_desc">Удалить выбранные</string>
+    <string name="cancel_selection_desc">Отменить выбор</string>
+    <string name="select_all_desc">Выделить всё</string>
     <string name="remove_from_favorites">Убрать из избранного</string>
 </resources> 

@@ -1,6 +1,7 @@
 package com.ukhvat.notes.data.repository
 
 import com.ukhvat.notes.domain.datasource.NoteDataSource
+import com.ukhvat.notes.domain.datasource.ArchiveDataSource
 import com.ukhvat.notes.domain.datasource.SearchDataSource
 import com.ukhvat.notes.domain.datasource.VersionDataSource
 import com.ukhvat.notes.domain.datasource.TrashDataSource
@@ -36,6 +37,7 @@ class ModularNotesRepository(
     private val searchDataSource: SearchDataSource,
     private val versionDataSource: VersionDataSource,
     private val trashDataSource: TrashDataSource,
+    private val archiveDataSource: ArchiveDataSource,
     private val preferencesDataSource: PreferencesDataSource
 ) : NotesRepository {
     
@@ -290,6 +292,31 @@ class ModularNotesRepository(
         noteDataSource.setNotesFavorite(ids, isFavorite)
         // Selective invalidation
         ids.forEach { searchDataSource.invalidateNoteInCache(it) }
+    }
+
+    // ============ ARCHIVE ============
+    override fun getArchivedNotes(): Flow<List<Note>> {
+        return archiveDataSource.getArchivedNotes()
+    }
+
+    override suspend fun moveToArchive(id: Long) {
+        archiveDataSource.moveToArchive(id)
+        searchDataSource.invalidateNoteInCache(id)
+    }
+
+    override suspend fun moveNotesToArchive(ids: List<Long>) {
+        archiveDataSource.moveMultipleToArchive(ids)
+        ids.forEach { searchDataSource.invalidateNoteInCache(it) }
+    }
+
+    override suspend fun restoreFromArchive(id: Long) {
+        archiveDataSource.restoreFromArchive(id)
+        searchDataSource.invalidateNoteInCache(id)
+    }
+
+    override suspend fun deleteFromArchive(id: Long) {
+        archiveDataSource.moveArchivedToTrash(id)
+        searchDataSource.invalidateNoteInCache(id)
     }
 
     // ============ SETTINGS ============

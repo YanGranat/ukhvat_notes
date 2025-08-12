@@ -171,4 +171,16 @@ interface NotesRepository {
      * Batch favorites update
      */
     suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean)
+
+    // ============ ARCHIVE ============
+    /** Получить все архивированные заметки */
+    fun getArchivedNotes(): kotlinx.coroutines.flow.Flow<List<Note>>
+    /** Переместить заметку в архив */
+    suspend fun moveToArchive(id: Long)
+    /** Переместить несколько заметок в архив */
+    suspend fun moveNotesToArchive(ids: List<Long>)
+    /** Восстановить из архива */
+    suspend fun restoreFromArchive(id: Long)
+    /** Удалить из архива (в корзину) */
+    suspend fun deleteFromArchive(id: Long)
 } 

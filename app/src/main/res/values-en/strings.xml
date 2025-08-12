@@ -126,7 +126,7 @@
     <string name="export_plain_text_sharing">Export note</string>
     <string name="export_database_note">Export SQLite database</string>
     <string name="export_database_available">Database export available only for general export (all notes)</string>
-    <string name="export_selected_desc">Export selected</string>
+    <!-- duplicate removed: export_selected_desc defined later -->
     
     <!-- Import Dialog Strings -->
     <string name="select_import_source">Select import source</string>
@@ -232,9 +232,8 @@
     <string name="expand_results_desc">Expand results</string>
     <string name="collapse_results_desc">Collapse results</string>
     <string name="more_results">and %1$d more results...</string>
-    <string name="cancel_selection_desc">Cancel selection</string>
-    <string name="select_all_desc">Select all</string>
-    <string name="delete_selected_desc">Delete selected</string>
+    <!-- duplicate removed: cancel_selection_desc/select_all_desc defined later -->
+    <!-- duplicate removed: delete_selected_desc defined later -->
     <string name="loading_dots">Loading.</string>
     <string name="loading_double_dots">Loading..</string>
     <string name="loading_triple_dots">Loading...</string>
@@ -339,6 +338,25 @@
     <string name="trash_empty">Trash is empty</string>
     <string name="deleted_date">Deleted: %1$s</string>
     <string name="unknown">Unknown</string>
+
+    <!-- Archive -->
+    <string name="archive">Archive</string>
+    <string name="move_to_archive">Move to archive</string>
+    <string name="restore_from_archive">Restore</string>
+    <string name="archive_screen_title">Archive</string>
+    <string name="archive_empty">Archive is empty</string>
+    <string name="archived_date">Archived: %1$s</string>
+    <string name="archive_delete_to_trash">Delete</string>
+    <string name="restore_all">Restore all</string>
+    <string name="delete_all_soft">Delete all</string>
+    <string name="delete_all_soft_confirm">Move all archived notes to Trash?</string>
+    <string name="restored_all">All notes restored</string>
+    <string name="moved_all_to_trash">All notes moved to Trash</string>
+    <!-- duplicate removed: remove_from_favorites defined later -->
+    <string name="export_selected_desc">Export selected</string>
+    <string name="delete_selected_desc">Delete selected</string>
+    <string name="cancel_selection_desc">Cancel selection</string>
+    <string name="select_all_desc">Select all</string>
     
     <!-- Note info -->
     <string name="created">Created</string>

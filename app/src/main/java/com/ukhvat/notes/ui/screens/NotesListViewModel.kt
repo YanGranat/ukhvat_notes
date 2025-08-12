@@ -161,6 +161,7 @@ class NotesListViewModel(
             is NotesListEvent.SelectAllNotes -> selectAllNotes()
             is NotesListEvent.ClearSelection -> clearSelection()
             is NotesListEvent.DeleteSelectedNotes -> deleteSelectedNotes()
+            is NotesListEvent.MoveSelectedToArchive -> moveSelectedToArchive()
             is NotesListEvent.ToggleFavoriteForSelected -> toggleFavoriteForSelected()
             is NotesListEvent.ShowExportOptions -> showExportOptions()
             is NotesListEvent.ShowExportOptionsForSelected -> showExportOptionsForSelected()
@@ -560,6 +561,25 @@ class NotesListViewModel(
                 
                 // Clear search cache after mass note deletion
                 searchDataSource.clearCache()
+            }
+        }
+    }
+
+    private fun moveSelectedToArchive() {
+        val selectedIds = _uiState.value.selectedNotes
+        showToastIf(selectedIds.isEmpty(), R.string.no_notes_selected_delete) {
+            val currentState = _uiState.value
+            if (currentState.isSearchMode) {
+                val updatedSearchResults = currentState.searchResultNotes.filterNot { it.id in selectedIds }
+                _uiState.value = currentState.copy(searchResultNotes = updatedSearchResults)
+            } else {
+                val updatedAllNotes = currentState.allNotes.filterNot { it.id in selectedIds }
+                _uiState.value = currentState.copy(allNotes = updatedAllNotes)
+            }
+            clearSelection()
+            viewModelScope.launch {
+                repository.moveNotesToArchive(selectedIds.toList())
+                toaster.toast(R.string.move_to_archive)
             }
         }
     }
@@ -1141,6 +1161,7 @@ sealed class NotesListEvent {
     data object SelectAllNotes : NotesListEvent()
     data object ClearSelection : NotesListEvent() 
     data object DeleteSelectedNotes : NotesListEvent()
+    data object MoveSelectedToArchive : NotesListEvent()
     data object ToggleFavoriteForSelected : NotesListEvent()
     data object ShowExportOptions : NotesListEvent()
     data object ShowExportOptionsForSelected : NotesListEvent()

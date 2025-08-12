@@ -303,27 +303,6 @@ private fun NoteEditContent(
                                  onEvent(NoteEditEvent.ShowNoteInfo)
                              }
                          )
-                          DropdownMenuItem(
-                              text = { 
-                                  Row(verticalAlignment = Alignment.CenterVertically) {
-                                      Icon(
-                                          painter = painterResource(id = R.drawable.ic_history_versions),
-                                          contentDescription = stringResource(R.string.version_history_with_param),
-                                          tint = colors.menuText,
-                                          modifier = Modifier.size(18.dp)
-                                      )
-                                      Spacer(modifier = Modifier.width(8.dp))
-                                      Text(
-                                          stringResource(R.string.version_history_with_param),
-                                          color = colors.menuText
-                                      )
-                                  }
-                              },
-                              onClick = {
-                                  showMenu = false
-                                  onEvent(NoteEditEvent.ShowVersionHistory)
-                              }
-                          )
                           // Favorites right after "Информация о заметке"
                           DropdownMenuItem(
                               text = { 
@@ -346,27 +325,68 @@ private fun NoteEditContent(
                                   onEvent(NoteEditEvent.ToggleFavorite)
                               }
                           )
-                         DropdownMenuItem(
+                          DropdownMenuItem(
                               text = { 
                                   Row(verticalAlignment = Alignment.CenterVertically) {
-                                                                             Icon(
+                                      Icon(
+                                          painter = painterResource(id = R.drawable.ic_history_versions),
+                                          contentDescription = stringResource(R.string.version_history_with_param),
+                                          tint = colors.menuText,
+                                          modifier = Modifier.size(18.dp)
+                                      )
+                                      Spacer(modifier = Modifier.width(8.dp))
+                                      Text(
+                                          stringResource(R.string.version_history_with_param),
+                                          color = colors.menuText
+                                      )
+                                  }
+                              },
+                              onClick = {
+                                  showMenu = false
+                                  onEvent(NoteEditEvent.ShowVersionHistory)
+                              }
+                          )
+                          // Export note (should be before Archive)
+                          DropdownMenuItem(
+                               text = { 
+                                   Row(verticalAlignment = Alignment.CenterVertically) {
+                                       Icon(
                                            imageVector = Icons.Default.Share,
                                            contentDescription = stringResource(R.string.export_plain_text_sharing),
                                            tint = colors.menuText,
                                            modifier = Modifier.size(18.dp)
                                        )
                                        Spacer(modifier = Modifier.width(8.dp))
-                                                                             Text(
-                                            stringResource(R.string.export_plain_text_sharing),
-                                            color = colors.menuText
-                                        )
-                                 }
-                             },
-                             onClick = {
-                                 showMenu = false
-                                 onEvent(NoteEditEvent.ExportNote)
-                             }
-                         )
+                                       Text(
+                                           stringResource(R.string.export_plain_text_sharing),
+                                           color = colors.menuText
+                                       )
+                                  }
+                              },
+                              onClick = {
+                                  showMenu = false
+                                  onEvent(NoteEditEvent.ExportNote)
+                              }
+                          )
+                          // Archive
+                          DropdownMenuItem(
+                              text = {
+                                  Row(verticalAlignment = Alignment.CenterVertically) {
+                                      Icon(
+                                          painter = painterResource(id = R.drawable.ic_archive),
+                                          contentDescription = stringResource(R.string.move_to_archive),
+                                          tint = colors.menuText,
+                                          modifier = Modifier.size(18.dp)
+                                      )
+                                      Spacer(modifier = Modifier.width(8.dp))
+                                      Text(stringResource(R.string.move_to_archive), color = colors.menuText)
+                                  }
+                              },
+                              onClick = {
+                                  showMenu = false
+                                  onEvent(NoteEditEvent.MoveToArchive)
+                              }
+                          )
                                                    DropdownMenuItem(
                               text = { 
                                   Row(verticalAlignment = Alignment.CenterVertically) {

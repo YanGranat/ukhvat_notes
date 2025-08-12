@@ -21,7 +21,7 @@ interface NoteMetadataDao {
      * Очень быстрая операция - только легкие данные
      * Исключает удаленные заметки (isDeleted = true)
      */
-    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 AND isArchived = 0 ORDER BY updatedAt DESC")
     fun getAllMetadata(): Flow<List<NoteMetadataEntity>>
 
     /**
@@ -36,7 +36,7 @@ interface NoteMetadataDao {
      * Important: Returns only ACTIVE notes (isDeleted = 0).
      * Исключает заметки из корзины для правильного UX поиска.  
      */
-    @Query("SELECT * FROM note_metadata WHERE id IN (:ids) AND isDeleted = 0")
+    @Query("SELECT * FROM note_metadata WHERE id IN (:ids) AND isDeleted = 0 AND isArchived = 0")
     suspend fun getMetadataByIds(ids: List<Long>): List<NoteMetadataEntity>
 
     /**
@@ -177,5 +177,36 @@ interface NoteMetadataDao {
      */
     @Query("SELECT COUNT(*) FROM note_metadata WHERE isDeleted = 1")
     suspend fun getTrashCount(): Int
+
+    // ============ АРХИВ (ARCHIVE) ============
+    /**
+     * Получить все архивированные заметки
+     */
+    @Query("SELECT * FROM note_metadata WHERE isArchived = 1 ORDER BY archivedAt DESC")
+    fun getArchivedMetadata(): Flow<List<NoteMetadataEntity>>
+
+    /**
+     * Переместить заметку в архив
+     */
+    @Query("UPDATE note_metadata SET isArchived = 1, archivedAt = :archivedAt WHERE id = :id")
+    suspend fun moveToArchive(id: Long, archivedAt: Long)
+
+    /**
+     * Batch: переместить несколько заметок в архив
+     */
+    @Query("UPDATE note_metadata SET isArchived = 1, archivedAt = :archivedAt WHERE id IN (:ids)")
+    suspend fun moveMultipleToArchive(ids: List<Long>, archivedAt: Long)
+
+    /**
+     * Восстановить заметку из архива
+     */
+    @Query("UPDATE note_metadata SET isArchived = 0, archivedAt = NULL WHERE id = :id")
+    suspend fun restoreFromArchive(id: Long)
+
+    /**
+     * Переместить заметку из архива в корзину (soft delete)
+     */
+    @Query("UPDATE note_metadata SET isArchived = 0, archivedAt = NULL, isDeleted = 1, deletedAt = :deletedAt WHERE id = :id")
+    suspend fun moveArchivedToTrash(id: Long, deletedAt: Long)
 
 }
