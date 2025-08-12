@@ -49,7 +49,8 @@ val appModule = module {
             androidContext(),
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration()  // For development: recreates DB on changes
+        )
+         .addMigrations(AppDatabase.MIGRATION_8_9)
          .setQueryExecutor(Dispatchers.IO.asExecutor())  // DB operations in background thread
          .build()
     }

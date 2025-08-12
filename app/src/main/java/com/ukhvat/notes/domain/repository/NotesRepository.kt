@@ -161,4 +161,14 @@ interface NotesRepository {
      * @return Number of deleted notes
      */
     suspend fun getTrashCount(): Int
+
+    // ============ Favorites ============
+    /**
+     * Mark/unmark note as favorite
+     */
+    suspend fun setNoteFavorite(id: Long, isFavorite: Boolean)
+    /**
+     * Batch favorites update
+     */
+    suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean)
 } 

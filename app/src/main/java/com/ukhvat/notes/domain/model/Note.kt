@@ -10,6 +10,7 @@ data class Note(
     val cachedTitle: String? = null,  // Cached title
     val createdAt: Long,
     val updatedAt: Long,
+    val isFavorite: Boolean = false,
     val isDeleted: Boolean = false,   // Trash flag (soft delete)
     val deletedAt: Long? = null       // Deletion time for auto-cleanup
 ) {

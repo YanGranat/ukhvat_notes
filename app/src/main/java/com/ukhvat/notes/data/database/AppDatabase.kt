@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [
@@ -11,7 +13,7 @@ import android.content.Context
         NoteContentEntity::class,   // Новая: тяжелое содержимое  
         NoteVersionEntity::class    // Остается: история версий
     ],
-    version = 8,  // Версия 8: добавлены поля корзины isDeleted, deletedAt и индекс isDeleted
+    version = 9,  // Версия 9: добавлен флаг избранного isFavorite и индекс isFavorite
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,7 +24,12 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "note_database"
         
-        // Миграции убраны - в разработке используем fallbackToDestructiveMigration
-        // Когда будут пользователи, добавим миграции обратно
+        // Миграция 8->9: добавлен флаг избранного и индекс
+        val MIGRATION_8_9: Migration = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE note_metadata ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_isFavorite ON note_metadata(isFavorite)")
+            }
+        }
     }
 } 

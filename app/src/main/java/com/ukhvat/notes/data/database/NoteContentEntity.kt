@@ -41,6 +41,7 @@ data class NoteWithContentEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val characterCount: Int,
+    val isFavorite: Boolean,
     val content: String
 )
 
@@ -52,7 +53,8 @@ fun NoteWithContentEntity.toDomain(): Note = Note(
     content = content,
     cachedTitle = title,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    isFavorite = isFavorite
 )
 
 

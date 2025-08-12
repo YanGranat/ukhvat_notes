@@ -128,7 +128,8 @@ class NoteEditViewModel(
                             // UI display logic: first position search, then show content
                             _uiState.value = _uiState.value.copy(
                                 content = initialContent,
-                                                            loadingState = LoadingState.WaitingForSearchPositioning // First wait for positioning
+                                isFavorite = note.isFavorite,
+                                loadingState = LoadingState.WaitingForSearchPositioning // First wait for positioning
                             )
                             
                             // Synchronous search initialization from navigation
@@ -137,6 +138,7 @@ class NoteEditViewModel(
                             // Regular loading without search context
                             _uiState.value = _uiState.value.copy(
                                 content = initialContent,
+                                isFavorite = note.isFavorite,
                                 loadingState = LoadingState.Idle
                             )
                         }
@@ -167,6 +169,7 @@ class NoteEditViewModel(
             is NoteEditEvent.ForceSave -> forceSave()
             is NoteEditEvent.DeleteNote -> deleteNote()
             is NoteEditEvent.ExportNote -> exportNote()
+            is NoteEditEvent.ToggleFavorite -> toggleFavorite()
             is NoteEditEvent.ShowNoteInfo -> showNoteInfo()
             is NoteEditEvent.ShowVersionHistory -> showVersionHistory()
             is NoteEditEvent.StartSearch -> startSearch()
@@ -274,7 +277,8 @@ class NoteEditViewModel(
                     id = noteId,
                     content = content,
                     updatedAt = System.currentTimeMillis(),
-                    createdAt = 0L // Not used during update
+                    createdAt = 0L, // Not used during update
+                    isFavorite = currentUiState.isFavorite
                 )
                 
                 // Simple save WITHOUT versioning (versions created separately)
@@ -453,7 +457,8 @@ class NoteEditViewModel(
                     id = currentNoteId,
                     content = contentToSave,
                     updatedAt = System.currentTimeMillis(),
-                    createdAt = 0L // Not used during update
+                    createdAt = 0L, // Not used during update
+                    isFavorite = _uiState.value.isFavorite
                 )
                 repository.updateNote(updatedNote)
                 
@@ -787,6 +792,24 @@ class NoteEditViewModel(
         )
     }
 
+    /**
+     * Toggle favorite flag for current note
+     */
+    private fun toggleFavorite() {
+        val noteId = currentNoteId
+        val newValue = !_uiState.value.isFavorite
+        viewModelScope.launch {
+            try {
+                repository.setNoteFavorite(noteId, newValue)
+                _uiState.value = _uiState.value.copy(isFavorite = newValue)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
 
 
     
@@ -843,7 +866,8 @@ class NoteEditViewModel(
                         // FORCED SAVE of note with content
                         val updatedNote = currentNote.copy(
                             content = currentContent,  // Save current content
-                            updatedAt = System.currentTimeMillis()
+                            updatedAt = System.currentTimeMillis(),
+                            isFavorite = _uiState.value.isFavorite
                             // Title automatically recalculated in toMetadataEntityForSave()
                         )
                         repository.updateNote(updatedNote)
@@ -913,6 +937,7 @@ data class NoteEditUiState(
     val noteInfo: NoteInfo? = null,
     val navigateToVersionHistory: Boolean = false,
     val versionHistoryNoteId: Long = 0L,
+    val isFavorite: Boolean = false,
 
     val isSearchMode: Boolean = false,
     val searchQuery: String = "",
@@ -952,6 +977,7 @@ sealed class NoteEditEvent {
     object ForceSave : NoteEditEvent()
     object DeleteNote : NoteEditEvent()
     object ExportNote : NoteEditEvent()
+    object ToggleFavorite : NoteEditEvent()
     object ShowNoteInfo : NoteEditEvent()
     object ShowVersionHistory : NoteEditEvent()
     object StartSearch : NoteEditEvent()

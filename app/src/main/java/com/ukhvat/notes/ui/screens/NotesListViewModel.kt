@@ -161,6 +161,7 @@ class NotesListViewModel(
             is NotesListEvent.SelectAllNotes -> selectAllNotes()
             is NotesListEvent.ClearSelection -> clearSelection()
             is NotesListEvent.DeleteSelectedNotes -> deleteSelectedNotes()
+            is NotesListEvent.ToggleFavoriteForSelected -> toggleFavoriteForSelected()
             is NotesListEvent.ShowExportOptions -> showExportOptions()
             is NotesListEvent.ShowExportOptionsForSelected -> showExportOptionsForSelected()
             is NotesListEvent.DismissExportOptions -> dismissExportOptions()
@@ -559,6 +560,32 @@ class NotesListViewModel(
                 
                 // Clear search cache after mass note deletion
                 searchDataSource.clearCache()
+            }
+        }
+    }
+
+    private fun toggleFavoriteForSelected() {
+        val selectedIds = _uiState.value.selectedNotes
+        if (selectedIds.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                // Determine target value: if any selected is not favorite, set favorite; else remove favorite
+                val currentNotes = _uiState.value.notes.filter { it.id in selectedIds }
+                val shouldSetFavorite = currentNotes.any { !it.isFavorite }
+                repository.setNotesFavorite(selectedIds.toList(), shouldSetFavorite)
+                // Update UI model quickly to reflect color change
+                val updatedAll = _uiState.value.allNotes.map { n ->
+                    if (n.id in selectedIds) n.copy(isFavorite = shouldSetFavorite) else n
+                }
+                val updatedSearch = _uiState.value.searchResultNotes.map { n ->
+                    if (n.id in selectedIds) n.copy(isFavorite = shouldSetFavorite) else n
+                }
+                _uiState.value = _uiState.value.copy(
+                    allNotes = updatedAll,
+                    searchResultNotes = updatedSearch
+                )
+            } catch (e: Exception) {
+                toaster.toast(context.getString(R.string.update_error, e.localizedMessage ?: ""))
             }
         }
     }
@@ -1114,6 +1141,7 @@ sealed class NotesListEvent {
     data object SelectAllNotes : NotesListEvent()
     data object ClearSelection : NotesListEvent() 
     data object DeleteSelectedNotes : NotesListEvent()
+    data object ToggleFavoriteForSelected : NotesListEvent()
     data object ShowExportOptions : NotesListEvent()
     data object ShowExportOptionsForSelected : NotesListEvent()
     data object DismissExportOptions : NotesListEvent()

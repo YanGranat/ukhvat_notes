@@ -116,6 +116,18 @@ interface NoteMetadataDao {
     @Insert
     fun insertMetadataSync(metadata: NoteMetadataEntity): Long
 
+    /**
+     * Toggle or set favorite flag for a note
+     */
+    @Query("UPDATE note_metadata SET isFavorite = :isFavorite WHERE id = :id")
+    suspend fun setFavorite(id: Long, isFavorite: Boolean)
+
+    /**
+     * Batch: set favorite flag for multiple notes
+     */
+    @Query("UPDATE note_metadata SET isFavorite = :isFavorite WHERE id IN (:ids)")
+    suspend fun setFavoriteForIds(ids: List<Long>, isFavorite: Boolean)
+
     // ============ КОРЗИНА (TRASH) - МЕТОДЫ ДЛЯ SOFT DELETE ============
     
     /**

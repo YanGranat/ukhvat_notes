@@ -367,4 +367,8 @@
     <!-- Accessibility content descriptions -->
     <string name="note_selected">Заметка выбрана</string>
     <string name="empty_version_history">Пустая история версий</string>
+
+    <!-- Favorites -->
+    <string name="add_to_favorites">Добавить в избранное</string>
+    <string name="remove_from_favorites">Убрать из избранного</string>
 </resources> 

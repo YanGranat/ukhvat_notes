@@ -23,7 +23,8 @@ import com.ukhvat.notes.domain.model.Note
     tableName = "note_metadata",
     indices = [
         Index(value = ["updatedAt"], name = "index_updatedAt"),
-        Index(value = ["isDeleted"], name = "index_isDeleted")
+        Index(value = ["isDeleted"], name = "index_isDeleted"),
+        Index(value = ["isFavorite"], name = "index_isFavorite")
     ]
 )
 data class NoteMetadataEntity(
@@ -34,6 +35,7 @@ data class NoteMetadataEntity(
     val updatedAt: Long,
     val characterCount: Int = 0, // Количество символов для отображения в списке
     val maxVersions: Int = 100,  // Максимальное количество версий для этой заметки
+    val isFavorite: Boolean = false, // Флаг избранного
     val isDeleted: Boolean = false,     // Флаг удаления (soft delete)
     val deletedAt: Long? = null         // Время удаления для автоочистки через 30 дней
 )
@@ -47,6 +49,7 @@ fun NoteMetadataEntity.toDomainWithContent(content: String): Note = Note(
     cachedTitle = title,  // Используем заголовок из метаданных
     createdAt = createdAt,
     updatedAt = updatedAt,
+    isFavorite = isFavorite,
     isDeleted = isDeleted,
     deletedAt = deletedAt
 )
@@ -61,6 +64,7 @@ fun Note.toMetadataEntity(): NoteMetadataEntity = NoteMetadataEntity(
     updatedAt = updatedAt,
     characterCount = content.length,
     maxVersions = 100,  // Начальное значение для всех заметок
+    isFavorite = isFavorite,
     isDeleted = isDeleted,
     deletedAt = deletedAt
 )
@@ -99,6 +103,7 @@ fun Note.toMetadataEntityForSave(currentTime: Long = System.currentTimeMillis())
     updatedAt = currentTime,  // Всегда текущее время при сохранении
     characterCount = content.length,
     maxVersions = 100,
+    isFavorite = isFavorite,
     isDeleted = isDeleted,
     deletedAt = deletedAt
 )

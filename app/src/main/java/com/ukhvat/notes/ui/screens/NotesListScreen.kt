@@ -572,7 +572,7 @@ private fun NoteItem(
                 // In search mode show context with highlighting
                 Text(
                     text = annotatedText,
-                    color = precomputedTextColor,
+                    color = if (note.isFavorite) precomputedHighlightColor else precomputedTextColor,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                     fontWeight = FontWeight.Normal,
                     maxLines = 2,
@@ -582,7 +582,7 @@ private fun NoteItem(
                 // In normal mode show first line
                 Text(
                     text = displayText ?: "",
-                    color = precomputedTextColor,  // Use precomputed value instead of expensive call
+                    color = if (note.isFavorite) precomputedHighlightColor else precomputedTextColor,
                     fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                     fontWeight = FontWeight.Normal,
                     maxLines = 1,
@@ -923,24 +923,36 @@ private fun NotesTopAppBar(
                  }
              },
              actions = {
-                 IconButton(
-                     onClick = { onEvent(NotesListEvent.SelectAllNotes) }
-                 ) {
+                  IconButton(
+                      onClick = { onEvent(NotesListEvent.SelectAllNotes) }
+                  ) {
                      Icon(
                          painter = painterResource(id = R.drawable.ic_select_all),
                          contentDescription = stringResource(R.string.select_all_desc),
                          tint = Color.White,
-                         modifier = Modifier.size(24.dp)
+                          modifier = Modifier.size(24.dp)
                      )
                  }
-                                   IconButton(
-                     onClick = { onEvent(NotesListEvent.ShowExportOptionsForSelected) }
-                 ) {
+                  // Toggle favorites for selected notes
+                  IconButton(
+                      onClick = { onEvent(NotesListEvent.ToggleFavoriteForSelected) },
+                      modifier = Modifier.size(36.dp)
+                  ) {
+                      Icon(
+                          painter = painterResource(id = R.drawable.ic_favorite),
+                          contentDescription = stringResource(R.string.add_to_favorites),
+                          tint = Color.White,
+                          modifier = Modifier.size(20.dp)
+                      )
+                  }
+                   IconButton(
+                       onClick = { onEvent(NotesListEvent.ShowExportOptionsForSelected) }
+                   ) {
                       Icon(
                           painter = painterResource(id = R.drawable.ic_export),
                           contentDescription = stringResource(R.string.export_selected_desc),
                           tint = Color.White,
-                          modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp)
                       )
                   }
                   IconButton(
@@ -988,7 +1000,7 @@ private fun NotesTopAppBar(
                     onThemeClick = onThemeClick,
                     iconTint = Color.White
                 )
-                IconButton(onClick = { onShowMenuChange(true) }) {
+                 IconButton(onClick = { onShowMenuChange(true) }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.menu),
@@ -996,7 +1008,7 @@ private fun NotesTopAppBar(
                         modifier = Modifier.size(26.dp)
                     )
                 }
-                                                                                                                                       DropdownMenu(
+                 DropdownMenu(
                        expanded = showMenu,
                        onDismissRequest = { onShowMenuChange(false) },
                                           tonalElevation = if (ColorManager.isDarkTheme()) 0.dp else 2.dp,

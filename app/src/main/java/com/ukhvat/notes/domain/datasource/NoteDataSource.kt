@@ -106,4 +106,14 @@ interface NoteDataSource {
      * @param noteId ID of note for which limit is increased
      */
     suspend fun increaseMaxVersions(noteId: Long)
+
+    /**
+     * Set favorite flag for note
+     */
+    suspend fun setNoteFavorite(id: Long, isFavorite: Boolean)
+
+    /**
+     * Batch: set favorite flag for multiple notes
+     */
+    suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean)
 }

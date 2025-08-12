@@ -66,7 +66,7 @@ interface NoteContentDao {
      * @return Список АКТИВНЫХ заметок с полными данными, отсортированный по времени обновления
      */
     @Query("""
-        SELECT m.id, m.title, m.createdAt, m.updatedAt, m.characterCount, c.content
+        SELECT m.id, m.title, m.createdAt, m.updatedAt, m.characterCount, m.isFavorite, c.content
         FROM note_metadata m 
         INNER JOIN note_content c ON m.id = c.noteId 
         WHERE c.content LIKE '%' || :query || '%' 

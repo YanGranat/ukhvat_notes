@@ -279,6 +279,19 @@ class ModularNotesRepository(
         return trashDataSource.getTrashCount()
     }
     
+    // ============ FAVORITES ============
+    override suspend fun setNoteFavorite(id: Long, isFavorite: Boolean) {
+        noteDataSource.setNoteFavorite(id, isFavorite)
+        // Invalidate search cache selectively as favorite change may affect UI but not search results
+        searchDataSource.invalidateNoteInCache(id)
+    }
+
+    override suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean) {
+        noteDataSource.setNotesFavorite(ids, isFavorite)
+        // Selective invalidation
+        ids.forEach { searchDataSource.invalidateNoteInCache(it) }
+    }
+
     // ============ SETTINGS ============
     
     override suspend fun getThemePreference(): ThemePreference {

@@ -110,6 +110,7 @@ class NoteDataSourceImpl(
                     cachedTitle = metadata.title,  // Заголовок из метаданных
                     createdAt = metadata.createdAt,
                     updatedAt = metadata.updatedAt,
+                    isFavorite = metadata.isFavorite,
                     isDeleted = metadata.isDeleted,
                     deletedAt = metadata.deletedAt
                 )
@@ -125,7 +126,8 @@ class NoteDataSourceImpl(
                 content = "", // Пустое содержимое для batch операций
                 cachedTitle = metadata.title,
                 createdAt = metadata.createdAt,
-                updatedAt = metadata.updatedAt
+                updatedAt = metadata.updatedAt,
+                isFavorite = metadata.isFavorite
             )
         }
     }
@@ -207,5 +209,14 @@ class NoteDataSourceImpl(
     
     override suspend fun increaseMaxVersions(noteId: Long) {
         metadataDao.increaseMaxVersions(noteId)
+    }
+
+    override suspend fun setNoteFavorite(id: Long, isFavorite: Boolean) {
+        metadataDao.setFavorite(id, isFavorite)
+    }
+
+    override suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean) {
+        if (ids.isEmpty()) return
+        metadataDao.setFavoriteForIds(ids, isFavorite)
     }
 }

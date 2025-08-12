@@ -303,10 +303,10 @@ private fun NoteEditContent(
                                  onEvent(NoteEditEvent.ShowNoteInfo)
                              }
                          )
-                                                                            DropdownMenuItem(
-                             text = { 
-                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                                           Icon(
+                          DropdownMenuItem(
+                              text = { 
+                                  Row(verticalAlignment = Alignment.CenterVertically) {
+                                      Icon(
                                           painter = painterResource(id = R.drawable.ic_history_versions),
                                           contentDescription = stringResource(R.string.version_history_with_param),
                                           tint = colors.menuText,
@@ -317,14 +317,36 @@ private fun NoteEditContent(
                                           stringResource(R.string.version_history_with_param),
                                           color = colors.menuText
                                       )
-                                 }
-                             },
-                             onClick = {
-                                 showMenu = false
-                                 onEvent(NoteEditEvent.ShowVersionHistory)
-                             }
-                         )
-                                                   DropdownMenuItem(
+                                  }
+                              },
+                              onClick = {
+                                  showMenu = false
+                                  onEvent(NoteEditEvent.ShowVersionHistory)
+                              }
+                          )
+                          // Favorites right after "Информация о заметке"
+                          DropdownMenuItem(
+                              text = { 
+                                  Row(verticalAlignment = Alignment.CenterVertically) {
+                                      Icon(
+                                          painter = painterResource(id = R.drawable.ic_favorite),
+                                          contentDescription = stringResource(if (uiState.isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites),
+                                          tint = colors.menuText,
+                                          modifier = Modifier.size(18.dp)
+                                      )
+                                      Spacer(modifier = Modifier.width(8.dp))
+                                      Text(
+                                          stringResource(if (uiState.isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites),
+                                          color = colors.menuText
+                                      )
+                                  }
+                              },
+                              onClick = {
+                                  showMenu = false
+                                  onEvent(NoteEditEvent.ToggleFavorite)
+                              }
+                          )
+                         DropdownMenuItem(
                               text = { 
                                   Row(verticalAlignment = Alignment.CenterVertically) {
                                                                              Icon(
