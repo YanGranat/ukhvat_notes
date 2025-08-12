@@ -817,6 +817,7 @@ class NoteEditViewModel(
         viewModelScope.launch {
             try {
                 repository.moveToArchive(noteId)
+                toaster.toast(R.string.archived)
                 _uiState.value = _uiState.value.copy(
                     shouldNavigateBack = true,
                     shouldScrollToTop = true

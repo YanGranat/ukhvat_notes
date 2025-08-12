@@ -352,6 +352,8 @@
     <string name="delete_all_soft_confirm">Move all archived notes to Trash?</string>
     <string name="restored_all">All notes restored</string>
     <string name="moved_all_to_trash">All notes moved to Trash</string>
+    <string name="archived">Archived</string>
+    <string name="note_preview_title">Note preview</string>
     <!-- duplicate removed: remove_from_favorites defined later -->
     <string name="export_selected_desc">Export selected</string>
     <string name="delete_selected_desc">Delete selected</string>

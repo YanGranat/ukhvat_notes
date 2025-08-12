@@ -354,6 +354,8 @@
     <string name="delete_all_soft_confirm">Отправить все архивные заметки в корзину?</string>
     <string name="restored_all">Все заметки восстановлены</string>
     <string name="moved_all_to_trash">Все заметки отправлены в корзину</string>
+    <string name="archived">Архивировано</string>
+    <string name="note_preview_title">Просмотр заметки</string>
     
     <!-- Note info -->
     <string name="created">Создана</string>

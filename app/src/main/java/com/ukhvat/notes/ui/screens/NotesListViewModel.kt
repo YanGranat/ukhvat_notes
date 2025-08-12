@@ -579,7 +579,7 @@ class NotesListViewModel(
             clearSelection()
             viewModelScope.launch {
                 repository.moveNotesToArchive(selectedIds.toList())
-                toaster.toast(R.string.move_to_archive)
+                toaster.toast(R.string.archived)
             }
         }
     }

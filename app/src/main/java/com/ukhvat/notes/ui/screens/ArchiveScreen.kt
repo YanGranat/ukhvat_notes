@@ -96,7 +96,7 @@ fun ArchiveScreen(
             shape = RoundedCornerShape(12.dp),
             title = {
                 Text(
-                    text = stringResource(R.string.version_preview_title),
+                    text = stringResource(R.string.note_preview_title),
                     color = colors.menuText,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium
@@ -120,10 +120,14 @@ fun ArchiveScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    viewModel.onEvent(ArchiveEvent.RestoreNote(note.id))
-                    showPreviewDialog = null
-                }, colors = ButtonDefaults.textButtonColors(contentColor = colors.primary)) {
+                TextButton(
+                    onClick = {
+                        viewModel.onEvent(ArchiveEvent.RestoreNote(note.id))
+                        showPreviewDialog = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = colors.primary),
+                    modifier = Modifier.offset(x = (-34).dp)
+                ) {
                     Text(stringResource(R.string.restore_from_archive))
                 }
             }
