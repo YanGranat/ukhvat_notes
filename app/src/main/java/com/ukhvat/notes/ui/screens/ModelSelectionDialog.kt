@@ -99,6 +99,18 @@ fun ModelSelectionDialog(
                     selected = openAiModel == "gpt-5-nano-2025-08-07",
                     onClick = { openAiModel = "gpt-5-nano-2025-08-07" }
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                FullWidthSelectButton(
+                    label = "gpt-4.1-2025-04-14",
+                    selected = openAiModel == "gpt-4.1-2025-04-14",
+                    onClick = { openAiModel = "gpt-4.1-2025-04-14" }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FullWidthSelectButton(
+                    label = "o3-deep-research-2025-06-26",
+                    selected = openAiModel == "o3-deep-research-2025-06-26",
+                    onClick = { openAiModel = "o3-deep-research-2025-06-26" }
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -115,6 +127,12 @@ fun ModelSelectionDialog(
                     label = "gemini-2.5-flash",
                     selected = geminiModel == "gemini-2.5-flash",
                     onClick = { geminiModel = "gemini-2.5-flash" }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FullWidthSelectButton(
+                    label = "gemini-2.5-flash-lite",
+                    selected = geminiModel == "gemini-2.5-flash-lite",
+                    onClick = { geminiModel = "gemini-2.5-flash-lite" }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -148,6 +166,18 @@ fun ModelSelectionDialog(
                     label = "google/gemma-3-27b-it:free",
                     selected = openRouterModel == "google/gemma-3-27b-it:free",
                     onClick = { openRouterModel = "google/gemma-3-27b-it:free" }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FullWidthSelectButton(
+                    label = "x-ai/grok-4",
+                    selected = openRouterModel == "x-ai/grok-4",
+                    onClick = { openRouterModel = "x-ai/grok-4" }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                FullWidthSelectButton(
+                    label = "qwen/qwen3-coder",
+                    selected = openRouterModel == "qwen/qwen3-coder",
+                    onClick = { openRouterModel = "qwen/qwen3-coder" }
                 )
             }
         },

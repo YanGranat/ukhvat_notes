@@ -28,7 +28,7 @@
 - **🌍 Bilingual** - English and Russian interface
 - **⭐ Favorites** - Mark important notes and see them highlighted in the list
 - **🗄️ Archive (new)** - Archive/unarchive notes (hidden from main list and search), Archive screen with preview, per-note Restore/Delete (to Trash), and bulk actions (Restore all / Delete all)
-- **🤖 AI proofreading (new)** - In-editor AI menu with "Fix errors" using OpenAI/Gemini/Anthropic/OpenRouter; API keys in Settings → API Keys; strict provider/model usage (no fallbacks). 180s network timeouts.
+- **🤖 AI proofreading (new)** - In-editor AI menu with "Fix errors" using OpenAI/Gemini/Anthropic/OpenRouter; API keys in Settings → API Keys; strict provider/model usage (no fallbacks). 180s network timeouts. Version preview highlights per-character changes (green = added vs previous; red = removed vs next).
 
 ## 📱 What it does
 
@@ -81,7 +81,7 @@ v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 - **Optimized database queries** - separate metadata/content tables
 - **Batch operations** for high-performance import/export
 - **Archive data flow** - new `ArchiveDataSource`, repository methods, and UI navigation
-- **AI integration** - OkHttp client; strict provider/model selection (no fallbacks); default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking); local API key storage; per-version AI metadata (provider/model/duration)
+- **AI integration** - OkHttp client; strict provider/model selection (no fallbacks); default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking) + extras (OpenAI: gpt-4.1-2025-04-14, o3-deep-research-2025-06-26; Gemini: gemini-2.5-flash-lite; OpenRouter: x-ai/grok-4, qwen/qwen3-coder); local API key storage; per-version AI metadata (provider/model/duration)
 - **Adaptive text processing** with advanced search algorithms
 
 ## 📄 Export & Import

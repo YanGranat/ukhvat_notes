@@ -32,6 +32,9 @@ import android.widget.Toast
 import java.io.File
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -268,11 +271,28 @@ fun VersionHistoryScreen(
    }
    
        // Version preview dialog
-   showPreviewDialog?.let { version ->
+    showPreviewDialog?.let { version ->
        val clipboardManager = LocalClipboardManager.current
+        // Find previous version content (versions ordered by timestamp desc)
+        val prevContent = remember(versions) {
+            val list = versions
+            if (list != null) {
+                val idx = list.indexOfFirst { it.id == version.id }
+                if (idx >= 0 && idx < list.size - 1) list[idx + 1].content else null
+            } else null
+        }
+        val nextContent = remember(versions) {
+            val list = versions
+            if (list != null) {
+                val idx = list.indexOfFirst { it.id == version.id }
+                if (idx > 0) list[idx - 1].content else null
+            } else null
+        }
        
        VersionPreviewDialog(
            version = version,
+            previousContent = prevContent,
+            nextContent = nextContent,
            onDismiss = { showPreviewDialog = null },
            onRestore = { 
                rollbackFromPreview = true
@@ -709,6 +729,8 @@ private fun formatElapsedForDialog(ms: Long?): String {
 @Composable
 private fun VersionPreviewDialog(
     version: NoteVersion,
+    previousContent: String?,
+    nextContent: String?,
     onDismiss: () -> Unit,
     onRestore: () -> Unit,
     onCopy: () -> Unit = {},
@@ -830,8 +852,17 @@ private fun VersionPreviewDialog(
                     .fillMaxWidth()
             ) {
                 item {
+                    val annotated = remember(version.content, previousContent, nextContent) {
+                        when {
+                            // If this version has a newer one, show removals (red) relative to next
+                            !nextContent.isNullOrEmpty() -> buildRemovedTextAnnotated(version.content, nextContent!!, colors)
+                            // Otherwise if there is previous, show additions (green) relative to previous
+                            !previousContent.isNullOrEmpty() -> buildAddedTextAnnotated(version.content, previousContent!!, colors)
+                            else -> androidx.compose.ui.text.AnnotatedString(version.content)
+                        }
+                    }
                     Text(
-                        text = version.content,
+                        text = annotated,
                         color = colors.text,
                         fontSize = 14.sp,
                         lineHeight = 20.sp
@@ -906,3 +937,67 @@ private fun localizeVersionDescription(description: String): String {
         else -> description // Keep as is for user-defined descriptions
     }
 } 
+
+private fun buildAddedTextAnnotated(current: String, previous: String, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString {
+    val a = current.toCharArray()
+    val b = previous.toCharArray()
+    val mask = lcsMatchMask(a, b)
+    val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text) // semi-transparent green
+    return buildAnnotatedString {
+        var i = 0
+        while (i < a.size) {
+            val ch = a[i]
+            if (mask[i]) {
+                append(ch)
+            } else {
+                withStyle(greenBg) { append(ch) }
+            }
+            i++
+        }
+    }
+}
+
+private fun buildRemovedTextAnnotated(current: String, next: String, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString {
+    val a = current.toCharArray()
+    val b = next.toCharArray()
+    val mask = lcsMatchMask(a, b)
+    val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text) // semi-transparent red
+    return buildAnnotatedString {
+        var i = 0
+        while (i < a.size) {
+            val ch = a[i]
+            if (mask[i]) {
+                append(ch)
+            } else {
+                withStyle(redBg) { append(ch) }
+            }
+            i++
+        }
+    }
+}
+
+private fun lcsMatchMask(a: CharArray, b: CharArray): BooleanArray {
+    val n = a.size
+    val m = b.size
+    val dp = Array(n + 1) { IntArray(m + 1) }
+    for (i in n - 1 downTo 0) {
+        for (j in m - 1 downTo 0) {
+            dp[i][j] = if (a[i] == b[j]) 1 + dp[i + 1][j + 1] else maxOf(dp[i + 1][j], dp[i][j + 1])
+        }
+    }
+    val mask = BooleanArray(n)
+    var i = 0
+    var j = 0
+    while (i < n && j < m) {
+        if (a[i] == b[j]) {
+            mask[i] = true
+            i++
+            j++
+        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+            i++
+        } else {
+            j++
+        }
+    }
+    return mask
+}
