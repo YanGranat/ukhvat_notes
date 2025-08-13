@@ -34,7 +34,10 @@ data class NoteVersionEntity(
     val timestamp: Long,
     val changeDescription: String? = null,
     val customName: String? = null,    // Пользовательское название версии
-    val isForcedSave: Boolean = false  // Была ли версия создана принудительным сохранением
+    val isForcedSave: Boolean = false,  // Была ли версия создана принудительным сохранением
+    val aiProvider: String? = null,
+    val aiModel: String? = null,
+    val aiDurationMs: Long? = null
 )
 
 // Extension functions для конвертации
@@ -45,7 +48,10 @@ fun NoteVersionEntity.toDomain(): NoteVersion = NoteVersion(
     timestamp = timestamp,
     changeDescription = changeDescription,
     customName = customName,
-    isForcedSave = isForcedSave
+    isForcedSave = isForcedSave,
+    aiProvider = aiProvider,
+    aiModel = aiModel,
+    aiDurationMs = aiDurationMs
 )
 
 fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
@@ -55,7 +61,10 @@ fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
     timestamp = timestamp,
     changeDescription = changeDescription,
     customName = customName,
-    isForcedSave = isForcedSave
+    isForcedSave = isForcedSave,
+    aiProvider = aiProvider,
+    aiModel = aiModel,
+    aiDurationMs = aiDurationMs
 )
 
 
@@ -91,5 +100,8 @@ fun createNoteVersion(
     timestamp = timestamp,
     changeDescription = changeDescription,
     customName = null,
-    isForcedSave = isForcedSave
+    isForcedSave = isForcedSave,
+    aiProvider = null,
+    aiModel = null,
+    aiDurationMs = null
 ) 

@@ -100,6 +100,7 @@ interface NotesRepository {
     suspend fun getVersionById(versionId: Long): NoteVersion?
     suspend fun deleteVersion(versionId: Long): Boolean
     suspend fun updateVersionCustomName(versionId: Long, customName: String?)
+    suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
 
     // ============ Batch operations for versions ============
     

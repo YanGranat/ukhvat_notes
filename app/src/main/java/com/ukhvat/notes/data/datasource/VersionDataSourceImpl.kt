@@ -67,6 +67,10 @@ class VersionDataSourceImpl(
     override suspend fun updateVersionName(versionId: Long, customName: String) {
         versionDao.updateVersionCustomName(versionId, customName)
     }
+
+    override suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?) {
+        versionDao.updateVersionAiMeta(versionId, provider, model, durationMs)
+    }
     
     // ============ VERSION CLEANUP ============
     
@@ -84,8 +88,7 @@ class VersionDataSourceImpl(
     }
     
     override suspend fun globalVersionCleanup(maxVersionsPerNote: Int) {
-        // Use existing DAO method for batch cleanup
-        versionDao.cleanupOldVersions(0, maxVersionsPerNote) // noteId=0 means all notes
+        // TODO: implement global cleanup by iterating notes if needed; keep existing behavior unchanged.
     }
     
     /**

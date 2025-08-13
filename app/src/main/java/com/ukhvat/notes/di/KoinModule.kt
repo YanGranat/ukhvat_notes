@@ -50,7 +50,7 @@ val appModule = module {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-         .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
+         .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
          .setQueryExecutor(Dispatchers.IO.asExecutor())  // DB operations in background thread
          .build()
     }

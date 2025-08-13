@@ -1027,11 +1027,13 @@ class NotesListViewModel(
                 val open = repository.getOpenAiApiKey() ?: ""
                 val gem = repository.getGeminiApiKey() ?: ""
                 val ant = repository.getAnthropicApiKey() ?: ""
+                val router = repository.getOpenRouterApiKey() ?: ""
                 _uiState.value = _uiState.value.copy(
                     dialogState = DialogState.ApiKeys,
                     openAiKeyDraft = open,
                     geminiKeyDraft = gem,
-                    anthropicKeyDraft = ant
+                    anthropicKeyDraft = ant,
+                    openRouterKeyDraft = router
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -1232,7 +1234,8 @@ data class NotesListUiState(
     // Drafts for API keys editing
     val openAiKeyDraft: String = "",
     val geminiKeyDraft: String = "",
-    val anthropicKeyDraft: String = "",
+        val anthropicKeyDraft: String = "",
+        val openRouterKeyDraft: String = "",
     // AI model/provider drafts for ModelSelectionDialog
     val aiProviderDraft: com.ukhvat.notes.domain.model.AiProvider = com.ukhvat.notes.domain.model.AiProvider.OPENAI,
     val openAiModelDraft: String = "gpt-5-2025-08-07",

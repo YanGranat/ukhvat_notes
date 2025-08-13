@@ -438,7 +438,7 @@ private fun NotesListContent(
             openAiKeyInitial = uiState.openAiKeyDraft,
             geminiKeyInitial = uiState.geminiKeyDraft,
             anthropicKeyInitial = uiState.anthropicKeyDraft,
-            openRouterKeyInitial = "",
+            openRouterKeyInitial = uiState.openRouterKeyDraft,
             onSave = { openAi, gemini, anthropic, openRouter ->
                 onEvent(NotesListEvent.SaveApiKeys(openAi, gemini, anthropic, openRouter))
             },

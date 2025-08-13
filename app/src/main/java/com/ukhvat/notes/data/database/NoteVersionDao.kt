@@ -119,6 +119,9 @@ interface NoteVersionDao {
     @Query("UPDATE note_versions SET customName = :customName WHERE id = :versionId")
     suspend fun updateVersionCustomName(versionId: Long, customName: String?)
 
+    @Query("UPDATE note_versions SET aiProvider = :provider, aiModel = :model, aiDurationMs = :durationMs WHERE id = :versionId")
+    suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
+
     /**
      * Получить количество принудительно созданных версий для заметки
      * Используется для корректировки maxVersions при удалении

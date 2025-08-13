@@ -1,6 +1,7 @@
 package com.ukhvat.notes.data.datasource
 
 import com.ukhvat.notes.domain.datasource.AiDataSource
+import com.ukhvat.notes.domain.model.AiProvider
 import com.ukhvat.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -28,16 +29,17 @@ class AiDataSourceImpl(
 
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
-    override suspend fun correctText(original: String): String = withContext(networkDispatcher) {
-        // Resolve preferred provider and keys
-        val preferred = repository.getPreferredAiProvider()
+    override suspend fun correctText(original: String): AiDataSource.AiResult = withContext(networkDispatcher) {
+        // Resolve preferred provider and models STRICTLY from settings
+        val preferred = repository.getPreferredAiProvider() ?: throw IllegalStateException("AI provider not set in Settings")
         val openaiKey = repository.getOpenAiApiKey()
         val geminiKey = repository.getGeminiApiKey()
         val anthropicKey = repository.getAnthropicApiKey()
         val openRouterKey = repository.getOpenRouterApiKey()
-        val openaiModel = repository.getOpenAiModel() ?: "gpt-5-2025-08-07"
-        val geminiModel = repository.getGeminiModel() ?: "gemini-2.5-flash"
-        val anthropicModel = repository.getAnthropicModel() ?: "claude-3-7-sonnet-thinking"
+        val openaiModel = repository.getOpenAiModel()
+        val geminiModel = repository.getGeminiModel()
+        val anthropicModel = repository.getAnthropicModel()
+        val openrouterModel = repository.getOpenRouterModel()
 
         // Build prompt
         val systemPrompt = """
@@ -66,27 +68,32 @@ class AiDataSourceImpl(
             </ТЕКСТ КОТОРЫЙ НУЖНО ИСПРАВИТЬ>
         """.trimIndent()
 
-        // Try preferred provider first, then fallbacks by priority
-        val tryOrder = when (preferred) {
-            com.ukhvat.notes.domain.model.AiProvider.OPENAI -> listOf("openai", "gemini", "anthropic", "openrouter")
-            com.ukhvat.notes.domain.model.AiProvider.GEMINI -> listOf("gemini", "openai", "anthropic", "openrouter")
-            com.ukhvat.notes.domain.model.AiProvider.ANTHROPIC -> listOf("anthropic", "openai", "gemini", "openrouter")
-            com.ukhvat.notes.domain.model.AiProvider.OPENROUTER -> listOf("openrouter", "openai", "gemini", "anthropic")
-            null -> listOf("openai", "gemini", "anthropic", "openrouter")
-        }
-
-        for (p in tryOrder) {
-            when (p) {
-                "openai" -> if (!openaiKey.isNullOrBlank()) return@withContext callOpenAi(openaiKey, openaiModel, systemPrompt, userPrompt)
-                "gemini" -> if (!geminiKey.isNullOrBlank()) return@withContext callGemini(geminiKey, geminiModel, systemPrompt, userPrompt)
-                "anthropic" -> if (!anthropicKey.isNullOrBlank()) return@withContext callAnthropic(anthropicKey, anthropicModel, systemPrompt, userPrompt)
-                "openrouter" -> if (!openRouterKey.isNullOrBlank()) return@withContext callOpenRouter(openRouterKey, repository.getOpenRouterModel() ?: openaiModel, systemPrompt, userPrompt)
+        // Use ONLY the selected provider/model; no fallbacks
+        return@withContext when (preferred) {
+            AiProvider.OPENAI -> {
+                val key = openaiKey ?: throw IllegalStateException("OpenAI API key not set")
+                val model = openaiModel ?: throw IllegalStateException("OpenAI model not selected")
+                callOpenAi(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.GEMINI -> {
+                val key = geminiKey ?: throw IllegalStateException("Gemini API key not set")
+                val model = geminiModel ?: throw IllegalStateException("Gemini model not selected")
+                callGemini(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.ANTHROPIC -> {
+                val key = anthropicKey ?: throw IllegalStateException("Anthropic API key not set")
+                val model = anthropicModel ?: throw IllegalStateException("Anthropic model not selected")
+                callAnthropic(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.OPENROUTER -> {
+                val key = openRouterKey ?: throw IllegalStateException("OpenRouter API key not set")
+                val model = openrouterModel ?: throw IllegalStateException("OpenRouter model not selected")
+                callOpenRouter(key, model, systemPrompt, userPrompt)
             }
         }
-        throw IllegalStateException("No AI API key configured")
     }
 
-    private fun callOpenAi(apiKey: String, model: String, systemPrompt: String, userPrompt: String): String {
+    private fun callOpenAi(apiKey: String, model: String, systemPrompt: String, userPrompt: String): AiDataSource.AiResult {
         // OpenAI Chat Completions style (v1/chat/completions)
         val url = "https://api.openai.com/v1/chat/completions"
         val payload = JSONObject().apply {
@@ -127,11 +134,11 @@ class AiDataSourceImpl(
                 .getJSONObject("message")
                 .optString("content")
             if (content.isNullOrBlank()) throw IllegalStateException("OpenAI: empty content")
-            return content
+            return AiDataSource.AiResult(text = content, provider = AiProvider.OPENAI, model = model)
         }
     }
 
-    private fun callGemini(apiKey: String, model: String, systemPrompt: String, userPrompt: String): String {
+    private fun callGemini(apiKey: String, model: String, systemPrompt: String, userPrompt: String): AiDataSource.AiResult {
         // Google Generative Language API for text-only input
         // Using models like gemini-1.5-flash with text prompt
         val url = "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey"
@@ -171,11 +178,11 @@ class AiDataSourceImpl(
             }
             val text = parts.getJSONObject(0).optString("text")
             if (text.isNullOrBlank()) throw IllegalStateException("Gemini: empty content")
-            return text
+            return AiDataSource.AiResult(text = text, provider = AiProvider.GEMINI, model = model)
         }
     }
 
-    private fun callAnthropic(apiKey: String, model: String, systemPrompt: String, userPrompt: String): String {
+    private fun callAnthropic(apiKey: String, model: String, systemPrompt: String, userPrompt: String): AiDataSource.AiResult {
         // Anthropic Messages API v1
         val url = "https://api.anthropic.com/v1/messages"
         val payload = JSONObject().apply {
@@ -211,11 +218,11 @@ class AiDataSourceImpl(
             }
             val text = contentArr.getJSONObject(0).optString("text")
             if (text.isNullOrBlank()) throw IllegalStateException("Anthropic: empty content")
-            return text
+            return AiDataSource.AiResult(text = text, provider = AiProvider.ANTHROPIC, model = model)
         }
     }
 
-    private fun callOpenRouter(apiKey: String, model: String, systemPrompt: String, userPrompt: String): String {
+    private fun callOpenRouter(apiKey: String, model: String, systemPrompt: String, userPrompt: String): AiDataSource.AiResult {
         // OpenRouter: unified chat completions across providers
         val url = "https://openrouter.ai/api/v1/chat/completions"
         val payload = JSONObject().apply {
@@ -246,7 +253,7 @@ class AiDataSourceImpl(
             }
             val content = choices.getJSONObject(0).getJSONObject("message").optString("content")
             if (content.isNullOrBlank()) throw IllegalStateException("OpenRouter: empty content")
-            return content
+            return AiDataSource.AiResult(text = content, provider = AiProvider.OPENROUTER, model = model)
         }
     }
 }

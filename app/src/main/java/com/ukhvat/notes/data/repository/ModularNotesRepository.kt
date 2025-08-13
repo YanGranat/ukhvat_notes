@@ -214,6 +214,10 @@ class ModularNotesRepository(
     override suspend fun updateVersionCustomName(versionId: Long, customName: String?) {
         versionDataSource.updateVersionName(versionId, customName ?: "")
     }
+
+    override suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?) {
+        versionDataSource.updateVersionAiMeta(versionId, provider, model, durationMs)
+    }
     
 
     

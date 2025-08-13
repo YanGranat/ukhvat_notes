@@ -78,6 +78,11 @@ interface VersionDataSource {
      * @param customName New name
      */
     suspend fun updateVersionName(versionId: Long, customName: String)
+    /**
+     * Update AI meta fields for a version (provider, model, durationMs).
+     * Does not change user-defined custom name.
+     */
+    suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
     
     // ============ VERSION CLEANUP ============
     

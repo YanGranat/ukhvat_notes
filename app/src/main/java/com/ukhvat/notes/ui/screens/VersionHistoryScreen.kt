@@ -64,6 +64,7 @@ fun VersionHistoryScreen(
     val coroutineScope = rememberCoroutineScope()
     var showRollbackDialog by remember { mutableStateOf<NoteVersion?>(null) }
     var showPreviewDialog by remember { mutableStateOf<NoteVersion?>(null) }
+    var showAiInfoDialog: MutableState<NoteVersion?> = remember { mutableStateOf(null) }
     var rollbackFromPreview by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     
@@ -282,11 +283,15 @@ fun VersionHistoryScreen(
                clipboardManager.setText(AnnotatedString(version.content))
                showPreviewDialog = null
            },
-           onRename = {
+            onRename = {
                renameText = version.customName ?: ""
                showRenameDialog = version
                showPreviewDialog = null
-           }
+            },
+            onInfo = {
+                showPreviewDialog = null
+                showAiInfoDialog.value = version
+            }
        )
    }
    
@@ -382,8 +387,8 @@ fun VersionHistoryScreen(
        )
    }
    
-       // History export dialog
-   if (showExportDialog) {
+    // History export dialog
+    if (showExportDialog) {
        AlertDialog(
            onDismissRequest = { showExportDialog = false },
                            containerColor = colors.dialogBackground,
@@ -479,7 +484,38 @@ fun VersionHistoryScreen(
                }
            }
        )
-   }
+    }
+
+    // AI info dialog (inside composable scope)
+    showAiInfoDialog.value?.let { version ->
+        val meta = remember(version.customName) { parseAiMeta(version.customName) }
+        AlertDialog(
+            onDismissRequest = { showAiInfoDialog.value = null },
+            containerColor = colors.dialogBackground,
+            shape = RoundedCornerShape(12.dp),
+            title = {
+                Text(
+                    text = stringResource(R.string.ai_info_dialog_title),
+                    color = colors.dialogText
+                )
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.ai_info_provider, version.aiProvider ?: meta?.provider ?: "—"), color = colors.dialogText)
+                    Spacer(Modifier.height(6.dp))
+                    Text(stringResource(R.string.ai_info_model, version.aiModel ?: meta?.model ?: "—"), color = colors.dialogText)
+                    Spacer(Modifier.height(6.dp))
+                    val duration = version.aiDurationMs?.let { formatElapsedForDialog(it) } ?: meta?.duration ?: "—"
+                    Text(stringResource(R.string.ai_info_duration, duration), color = colors.dialogText)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAiInfoDialog.value = null }, colors = ButtonDefaults.textButtonColors(contentColor = colors.text)) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -531,13 +567,15 @@ private fun VersionItem(
             
             // User-defined version name (below creation method description)
             version.customName?.let { name ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = name,
-                    color = colors.text,
-                    fontSize = 15.sp,  // Increased font size
-                    fontWeight = FontWeight.SemiBold
-                )
+                if (!name.startsWith("AI_META|")) { // legacy guard; new meta uses dedicated columns
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = name,
+                        color = colors.text,
+                        fontSize = 15.sp,  // Increased font size
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -613,6 +651,59 @@ private fun VersionItem(
             }
         }
     }
+
+    // (AI info dialog is handled at the screen level above)
+}
+
+private fun parseAiMeta(customName: String?): AiMetaView? {
+    if (customName.isNullOrBlank()) return null
+    if (!customName.startsWith("AI_META|")) return null
+    // Format: AI_META|provider=OPENAI|model=gpt-5-...|elapsedMs=1234
+    return try {
+        val parts = customName.removePrefix("AI_META|").split('|')
+        var provider = "—"
+        var model = "—"
+        var elapsedMs: Long? = null
+        parts.forEach { p ->
+            when {
+                p.startsWith("provider=") -> provider = p.substringAfter('=')
+                p.startsWith("model=") -> model = p.substringAfter('=')
+                p.startsWith("elapsedMs=") -> elapsedMs = p.substringAfter('=')
+                    .toLongOrNull()
+            }
+        }
+        AiMetaView(
+            provider = provider,
+            model = model,
+            duration = formatElapsedForDialog(elapsedMs)
+        )
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private data class AiMetaView(
+    val provider: String,
+    val model: String,
+    val duration: String
+)
+
+private fun formatElapsedForDialog(ms: Long?): String {
+    if (ms == null || ms <= 0) return "—"
+    val seconds = ms / 1000
+    return when {
+        seconds < 60 -> "$seconds s"
+        seconds < 3600 -> {
+            val m = seconds / 60
+            val s = seconds % 60
+            if (s == 0L) "${m} min" else "${m} min ${s} s"
+        }
+        else -> {
+            val h = seconds / 3600
+            val m = (seconds % 3600) / 60
+            if (m == 0L) "${h} h" else "${h} h ${m} min"
+        }
+    }
 }
 
 @Composable
@@ -621,7 +712,8 @@ private fun VersionPreviewDialog(
     onDismiss: () -> Unit,
     onRestore: () -> Unit,
     onCopy: () -> Unit = {},
-    onRename: () -> Unit = {}
+    onRename: () -> Unit = {},
+    onInfo: () -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
     
@@ -659,12 +751,14 @@ private fun VersionPreviewDialog(
                         )
                     }
                     version.customName?.let { name ->
-                        Text(
-                            text = name,
-                            color = colors.text,
-                            fontSize = 15.sp,  // Increased font size
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        if (!name.startsWith("AI_META|")) { // legacy guard; new meta uses dedicated columns
+                            Text(
+                                text = name,
+                                color = colors.text,
+                                fontSize = 15.sp,  // Increased font size
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
                 
@@ -710,6 +804,21 @@ private fun VersionPreviewDialog(
                                 onRename()
                             }
                         )
+                        // Info only for AI-corrected versions (after)
+                        if (version.changeDescription == stringResource(R.string.version_ai_after_fix)) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(R.string.version_info),
+                                        color = colors.menuText
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onInfo()
+                                }
+                            )
+                        }
                     }
                 }
             }

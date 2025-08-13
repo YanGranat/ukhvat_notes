@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NoteContentEntity::class,   // Новая: тяжелое содержимое  
         NoteVersionEntity::class    // Остается: история версий
     ],
-    version = 10,  // Версия 10: архивирование (isArchived, archivedAt) + индекс
+    version = 11,  // Версия 11: AI meta in note_versions (aiProvider, aiModel, aiDurationMs)
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,6 +38,15 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE note_metadata ADD COLUMN isArchived INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE note_metadata ADD COLUMN archivedAt INTEGER")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_isArchived ON note_metadata(isArchived)")
+            }
+        }
+
+        // Миграция 10->11: добавление AI метаданных в note_versions
+        val MIGRATION_10_11: Migration = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE note_versions ADD COLUMN aiProvider TEXT")
+                db.execSQL("ALTER TABLE note_versions ADD COLUMN aiModel TEXT")
+                db.execSQL("ALTER TABLE note_versions ADD COLUMN aiDurationMs INTEGER")
             }
         }
     }

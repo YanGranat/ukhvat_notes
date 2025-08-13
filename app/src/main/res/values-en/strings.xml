@@ -119,8 +119,13 @@
     <string name="version_creation">Note creation</string>
     <string name="version_autosave">Autosave</string>
     <string name="version_force_save">Force save</string>
-    <string name="version_ai_before_fix">AI: backup before correction</string>
-    <string name="version_ai_after_fix">AI: corrected version</string>
+    <string name="version_ai_before_fix">Fix errors (before)</string>
+    <string name="version_ai_after_fix">Fix errors (after)</string>
+    <string name="version_info">Info</string>
+    <string name="ai_info_dialog_title">Correction details</string>
+    <string name="ai_info_provider">Provider: %1$s</string>
+    <string name="ai_info_model">Model: %1$s</string>
+    <string name="ai_info_duration">Time: %1$s</string>
     
     <!-- Error messages -->
     <string name="save_error">Save error: %1$s</string>

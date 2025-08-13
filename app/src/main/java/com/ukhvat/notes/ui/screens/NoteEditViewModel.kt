@@ -785,7 +785,8 @@ class NoteEditViewModel(
                 } catch (_: Exception) {
                     // Versioning errors should not affect user experience
                 }
-                val corrected = aiDataSource.correctText(currentContent)
+                val aiResult = aiDataSource.correctText(currentContent)
+                val corrected = aiResult.text
                 // Replace note text and mark as changed; cursor to end
                 _uiState.value = _uiState.value.copy(
                     content = TextFieldValue(corrected, TextRange(corrected.length)),
@@ -799,6 +800,20 @@ class NoteEditViewModel(
                         content = corrected,
                         changeDescription = context.resources.getString(R.string.version_ai_after_fix)
                     )
+                    // Attach AI metadata to the latest version via dedicated fields (not customName)
+                    try {
+                        val latest = repository.getVersionsForNoteList(currentNoteId).firstOrNull()
+                        latest?.let { 
+                            repository.updateVersionAiMeta(
+                                versionId = it.id,
+                                provider = aiResult.provider.name,
+                                model = aiResult.model,
+                                durationMs = System.currentTimeMillis() - startedAt
+                            )
+                        }
+                    } catch (_: Exception) {
+                        // Ignore meta attachment failures
+                    }
                 } catch (_: Exception) {
                     // Versioning errors should not affect user experience
                 }
@@ -810,6 +825,8 @@ class NoteEditViewModel(
                 } else {
                     toaster.toast(R.string.ai_fixed_short)
                 }
+                // Store last AI operation meta for VersionInfo dialog
+                lastAiMeta = AiMeta(provider = aiResult.provider, model = aiResult.model, elapsedMs = elapsedMs)
                 // Trigger save on next debounce cycle
                 autoSaveJob?.cancel()
                 autoSaveJob = viewModelScope.launch {
@@ -824,6 +841,14 @@ class NoteEditViewModel(
             }
         }
     }
+
+    // AI meta info for latest correction
+    private var lastAiMeta: AiMeta? = null
+    data class AiMeta(
+        val provider: com.ukhvat.notes.domain.model.AiProvider,
+        val model: String,
+        val elapsedMs: Long
+    )
 
     private fun formatElapsed(ms: Long): String {
         val seconds = ms / 1000
