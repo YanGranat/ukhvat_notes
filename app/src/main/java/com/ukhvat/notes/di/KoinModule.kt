@@ -90,7 +90,7 @@ val appModule = module {
     }
     
     single<com.ukhvat.notes.data.export.DatabaseExporter> { 
-        com.ukhvat.notes.data.export.DatabaseExporter() 
+        com.ukhvat.notes.data.export.DatabaseExporter(get()) 
     }
     
     single<com.ukhvat.notes.data.export.IndividualMarkdownExporter> { 
@@ -99,7 +99,7 @@ val appModule = module {
     
     // Import utilities (migrated from Hilt @Inject constructors)
     single<com.ukhvat.notes.data.export.DatabaseImporter> { 
-        com.ukhvat.notes.data.export.DatabaseImporter(get(), androidContext(), get()) // NotesRepository + Context + Toaster
+        com.ukhvat.notes.data.export.DatabaseImporter(androidContext(), get(), get()) // Context + Toaster + AppDatabase
     }
     
     single<com.ukhvat.notes.data.export.ArchiveImporter> { 

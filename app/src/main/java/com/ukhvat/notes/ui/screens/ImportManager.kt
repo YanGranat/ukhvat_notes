@@ -36,7 +36,7 @@ import com.ukhvat.notes.domain.util.Toaster
  * - Toast notifications with detailed import statistics
  * - Graceful error handling without app crashes
  *
- * @param databaseImporter Importer for SQLite databases
+     * @param databaseImporter Importer for SQLite databases
  * @param archiveImporter Importer for ZIP archives
  * @param folderImporter Importer for folders with MD and TXT files
  * @param toaster Service for user notifications

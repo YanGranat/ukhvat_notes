@@ -57,19 +57,18 @@ class FolderImporter(
     suspend fun importFromFolder(folderUri: Uri): Int = withContext(Dispatchers.IO) {
         try {
             val folder = DocumentFile.fromTreeUri(context, folderUri) ?: return@withContext 0
-            
-            if (!folder.exists() || !folder.isDirectory) {
-                return@withContext 0
+            if (!folder.exists() || !folder.isDirectory) return@withContext 0
+
+            val notesToInsert = mutableListOf<Note>()
+            val baseTime = System.currentTimeMillis()
+
+            collectNotesFromDocumentFolder(folder, "", baseTime, notesToInsert)
+
+            if (notesToInsert.isNotEmpty()) {
+                repository.insertNotesInBatch(notesToInsert)
             }
-            
-            var importedCount = 0
-            val currentTime = System.currentTimeMillis()
-            
-            // Recursively import all .md and .txt files with instant display
-            importedCount += importFromDocumentFolder(folder, "", currentTime, importedCount)
-            
-            importedCount
-            
+
+            notesToInsert.size
         } catch (e: Exception) {
             e.printStackTrace()
             0
@@ -85,83 +84,56 @@ class FolderImporter(
      * @param currentCount Current count of imported notes
      * @return Number of imported files from this folder
      */
-    private suspend fun importFromDocumentFolder(
+    private suspend fun collectNotesFromDocumentFolder(
         folder: DocumentFile,
         pathPrefix: String,
         baseTime: Long,
-        currentCount: Int
-    ): Int {
-        var importedCount = 0
-        
+        accumulator: MutableList<Note>
+    ) {
         try {
-            // Scan all files and folders
             folder.listFiles().forEach { file ->
                 when {
-                    // Recursively process subfolders
                     file.isDirectory -> {
-                        val newPrefix = if (pathPrefix.isEmpty()) {
-                            file.name ?: ""
-                        } else {
-                            "$pathPrefix/${file.name ?: ""}"
-                        }
-                        importedCount += importFromDocumentFolder(
-                            file, 
-                            newPrefix, 
-                            baseTime, 
-                            currentCount + importedCount
-                        )
+                        val newPrefix = if (pathPrefix.isEmpty()) file.name ?: "" else "$pathPrefix/${file.name ?: ""}"
+                        collectNotesFromDocumentFolder(file, newPrefix, baseTime, accumulator)
                     }
-                    
-                    // Import .md and .txt files with instant UI appearance
                     file.isFile && (file.name?.endsWith(".md", ignoreCase = true) == true || file.name?.endsWith(".txt", ignoreCase = true) == true) -> {
                         try {
-                            // Read file content
                             val content = context.contentResolver.openInputStream(file.uri)?.use { stream ->
-                                stream.readBytes().toString(Charsets.UTF_8)
+                                val buf = ByteArray(8192)
+                                val out = java.io.ByteArrayOutputStream()
+                                var r = stream.read(buf)
+                                while (r != -1) {
+                                    out.write(buf, 0, r)
+                                    r = stream.read(buf)
+                                }
+                                out.toByteArray().toString(Charsets.UTF_8)
                             } ?: ""
-                            
-                            // Skip empty files
                             if (content.isNotBlank()) {
-                                // Extract title considering path
                                 val rawFileName = file.name ?: context.resources.getString(R.string.note_fallback)
                                 val fileName = when {
                                     rawFileName.endsWith(".md", ignoreCase = true) -> rawFileName.removeSuffix(".md")
                                     rawFileName.endsWith(".txt", ignoreCase = true) -> rawFileName.removeSuffix(".txt")
                                     else -> rawFileName
                                 }
-                                val fullTitle = if (pathPrefix.isNotEmpty()) {
-                                    "$pathPrefix/$fileName"
-                                } else {
-                                    fileName
-                                }
+                                val fullTitle = if (pathPrefix.isNotEmpty()) "$pathPrefix/$fileName" else fileName
                                 val title = sanitizeTitle(fullTitle)
-                                
-                                // Create and immediately save note (instant list appearance)
-                                val note = Note(
-                                    id = 0, // Auto-generate ID
-                                    content = content,
-                                    createdAt = baseTime + currentCount + importedCount, // Unique timestamps
-                                    updatedAt = baseTime + currentCount + importedCount,
-                                    cachedTitle = if (title.isNotBlank()) title else null
+                                val ts = baseTime + accumulator.size
+                                accumulator.add(
+                                    Note(
+                                        id = 0,
+                                        content = content,
+                                        createdAt = ts,
+                                        updatedAt = ts,
+                                        cachedTitle = if (title.isNotBlank()) title else null
+                                    )
                                 )
-                                
-                                repository.insertNote(note)
-                                importedCount++
                             }
-                            
-                                    } catch (e: Exception) {
-                // Skip corrupted files
-                            e.printStackTrace()
-                        }
+                        } catch (_: Exception) { }
                     }
                 }
             }
-            
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        
-        return importedCount
+        } catch (_: Exception) { }
     }
 
     /**

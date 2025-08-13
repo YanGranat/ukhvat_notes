@@ -27,7 +27,6 @@ import kotlinx.coroutines.yield
 class IndividualMarkdownExporter(private val context: Context) {
     
     suspend fun exportNotesToFolder(
-        context: Context,
         folderUri: Uri,
         notes: List<Note>
     ): Int = withContext(Dispatchers.IO) {

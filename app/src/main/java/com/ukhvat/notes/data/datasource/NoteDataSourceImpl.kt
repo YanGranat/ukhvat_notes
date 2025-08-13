@@ -129,7 +129,11 @@ class NoteDataSourceImpl(
                 cachedTitle = metadata.title,
                 createdAt = metadata.createdAt,
                 updatedAt = metadata.updatedAt,
-                isFavorite = metadata.isFavorite
+                isFavorite = metadata.isFavorite,
+                isDeleted = metadata.isDeleted,
+                deletedAt = metadata.deletedAt,
+                isArchived = metadata.isArchived,
+                archivedAt = metadata.archivedAt
             )
         }
     }

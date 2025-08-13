@@ -21,7 +21,7 @@ interface NoteMetadataDao {
      * Очень быстрая операция - только легкие данные
      * Исключает удаленные заметки (isDeleted = true)
      */
-    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 AND isArchived = 0 ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 AND isArchived = 0 ORDER BY updatedAt DESC, id DESC")
     fun getAllMetadata(): Flow<List<NoteMetadataEntity>>
 
     /**
@@ -110,8 +110,32 @@ interface NoteMetadataDao {
     /**
      * Синхронные методы для импорта данных
      */
-    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM note_metadata WHERE isDeleted = 0 AND isArchived = 0 ORDER BY updatedAt DESC, id DESC")
     fun getAllMetadataSync(): List<NoteMetadataEntity>
+
+    /**
+     * Получить все метаданные БЕЗ фильтрации (для полного импорта БД)
+     * Включает активные, удаленные (корзина) и архивные заметки.
+     */
+    @Query("SELECT * FROM note_metadata ORDER BY updatedAt DESC, id DESC")
+    fun getAllMetadataSyncAll(): List<NoteMetadataEntity>
+
+    /**
+     * Normalize flags after data import
+     * - If deletedAt is not null, ensure isDeleted = 1
+     * - If archivedAt is not null, ensure isArchived = 1
+     */
+    @Query("UPDATE note_metadata SET isDeleted = 1 WHERE deletedAt IS NOT NULL AND isDeleted = 0")
+    fun normalizeDeletedFlags()
+
+    @Query("UPDATE note_metadata SET isArchived = 1 WHERE archivedAt IS NOT NULL AND isArchived = 0")
+    fun normalizeArchivedFlags()
+
+    /**
+     * Safety rule: archived notes cannot be active in main list even if deletedAt is null
+     */
+    @Query("UPDATE note_metadata SET isArchived = 1 WHERE isArchived = 0 AND archivedAt IS NOT NULL")
+    fun enforceArchivedFromTimestamps()
 
     @Insert
     fun insertMetadataSync(metadata: NoteMetadataEntity): Long
@@ -134,7 +158,7 @@ interface NoteMetadataDao {
      * Получить все удаленные заметки (корзина)
      * Сортировка по времени удаления (новые первыми)
      */
-    @Query("SELECT * FROM note_metadata WHERE isDeleted = 1 ORDER BY deletedAt DESC")
+    @Query("SELECT * FROM note_metadata WHERE isDeleted = 1 ORDER BY deletedAt DESC, id DESC")
     fun getDeletedMetadata(): Flow<List<NoteMetadataEntity>>
     
     /**
@@ -182,7 +206,7 @@ interface NoteMetadataDao {
     /**
      * Получить все архивированные заметки
      */
-    @Query("SELECT * FROM note_metadata WHERE isArchived = 1 ORDER BY archivedAt DESC")
+    @Query("SELECT * FROM note_metadata WHERE isArchived = 1 ORDER BY archivedAt DESC, id DESC")
     fun getArchivedMetadata(): Flow<List<NoteMetadataEntity>>
 
     /**

@@ -287,11 +287,11 @@ private fun NotesListContent(
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(bottom = 96.dp)
                     ) {
                         itemsIndexed(
                             items = uiState.notes,
-                            key = { index, note -> note.id }  // Stable keys for performance
+                            key = { index, note -> note.id }  // Stable key per item identity
                         ) { index, note ->
                             // O(1) index instead of O(N) indexOf() - performance optimization
                             
@@ -1140,7 +1140,7 @@ private fun ImportOptionsDialog(
                     ),
                     border = BorderStroke(1.dp, Color(0xFF757575))
                 ) {
-                                            Text(stringResource(R.string.export_database))
+                    Text(stringResource(R.string.import_from_database))
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))

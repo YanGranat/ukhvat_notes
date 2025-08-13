@@ -238,7 +238,6 @@ class ExportManager(
 
                 val successCount = try {
                     individualMarkdownExporter.exportNotesToFolder(
-                        context = context,
                         folderUri = folderUri,
                         notes = notesToExport
                     )

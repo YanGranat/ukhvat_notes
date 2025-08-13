@@ -136,8 +136,10 @@ class NotesListViewModel(
     private fun loadDataSimple() {
         viewModelScope.launch {
             repository.getAllNotes().collect { notes ->
+                // Defensive UI filtering to exclude trash/archive even if DB query temporarily out-of-sync
+                val visibleNotes = notes.filter { !it.isDeleted && !it.isArchived }
                 _uiState.value = _uiState.value.copy(
-                    allNotes = notes,    // Update full list through Flow
+                    allNotes = visibleNotes,
                     isLoading = false
                 )
             }
@@ -282,7 +284,7 @@ class NotesListViewModel(
             try {
                 // Load notes synchronously
                 val notes = withContext(Dispatchers.IO) {
-                    repository.getAllNotesSync()
+                    repository.getAllNotesSync().filter { !it.isDeleted && !it.isArchived }
                 }
                 
                 if (!_uiState.value.isSearchMode) {
@@ -811,8 +813,8 @@ class NotesListViewModel(
                     searchDataSource.clearCacheAfterBatchOperation("import", importedCount)
                     
                     hideImportDialog()
-                    // Scroll to top - Flow automatically updates allNotes
-                    _uiState.value = _uiState.value.copy(navigationState = NavigationState.ScrollToTop)
+                    // Force reload in case Flow doesn't emit after batch import
+                    loadNotesWithScrollToTop()
                 },
                 onError = { error ->
                     _uiState.value = _uiState.value.copy(
@@ -830,10 +832,17 @@ class NotesListViewModel(
                 onSuccess = { importedCount ->
                     // Clear search cache after ZIP archive import
                     searchDataSource.clearCacheAfterBatchOperation("import", importedCount)
-                    
+                    // Reset search state to avoid showing stale searchResultNotes after data changes
+                    _uiState.value = _uiState.value.copy(
+                        searchMode = SearchMode.None,
+                        searchResultNotes = emptyList(),
+                        searchContexts = emptyMap(),
+                        searchResults = emptyMap(),
+                        expandedNotes = emptySet()
+                    )
+                    // Force reload to avoid race conditions with Flow emissions
                     hideImportDialog()
-                    // Scroll to top - Flow automatically updates allNotes
-                    _uiState.value = _uiState.value.copy(navigationState = NavigationState.ScrollToTop)
+                    loadNotesWithScrollToTop()
                 },
                 onError = { error ->
                     _uiState.value = _uiState.value.copy(
@@ -851,10 +860,17 @@ class NotesListViewModel(
                 onSuccess = { importedCount ->
                     // Clear search cache after folder import
                     searchDataSource.clearCacheAfterBatchOperation("import", importedCount)
-                    
+                    // Reset search state to avoid showing stale searchResultNotes after data changes
+                    _uiState.value = _uiState.value.copy(
+                        searchMode = SearchMode.None,
+                        searchResultNotes = emptyList(),
+                        searchContexts = emptyMap(),
+                        searchResults = emptyMap(),
+                        expandedNotes = emptySet()
+                    )
+                    // Force reload to avoid race conditions with Flow emissions
                     hideImportDialog()
-                    // Scroll to top - Flow automatically updates allNotes
-                    _uiState.value = _uiState.value.copy(navigationState = NavigationState.ScrollToTop)
+                    loadNotesWithScrollToTop()
                 },
                 onError = { error ->
                     _uiState.value = _uiState.value.copy(

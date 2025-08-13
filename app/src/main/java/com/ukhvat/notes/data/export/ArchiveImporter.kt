@@ -60,56 +60,57 @@ class ArchiveImporter(
      */
     suspend fun importFromArchive(uri: Uri): Int = withContext(Dispatchers.IO) {
         try {
-            var importedCount = 0
-            val currentTime = System.currentTimeMillis()
-            
+            val notesToInsert = mutableListOf<Note>()
+            val baseTime = System.currentTimeMillis()
+            var localCount = 0
+
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 ZipInputStream(inputStream).use { zipStream ->
                     var entry = zipStream.nextEntry
-                    
+
                     while (entry != null) {
-                        // Process only .md and .txt files, skip folders
                         if (!entry.isDirectory && (entry.name.endsWith(".md", ignoreCase = true) || entry.name.endsWith(".txt", ignoreCase = true))) {
                             try {
-                                // Read file content
-                                val content = zipStream.readBytes().toString(Charsets.UTF_8)
-                                
-                                // Skip empty files
+                                val buffer = ByteArray(8192)
+                                val out = java.io.ByteArrayOutputStream()
+                                var read = zipStream.read(buffer)
+                                while (read != -1) {
+                                    out.write(buffer, 0, read)
+                                    read = zipStream.read(buffer)
+                                }
+                                val content = out.toByteArray().toString(Charsets.UTF_8)
                                 if (content.isNotBlank()) {
-                                    // Extract title from filename
                                     val fileName = File(entry.name).nameWithoutExtension
                                     val title = sanitizeTitle(fileName)
-                                    
-                                    // Create and immediately save note (instant list appearance)
-                                    val note = Note(
-                                        id = 0, // Auto-generate ID
-                                        content = content,
-                                        createdAt = currentTime + importedCount, // Small shifts for uniqueness
-                                        updatedAt = currentTime + importedCount,
-                                        cachedTitle = if (title.isNotBlank()) title else null
+                                    // Monotonic timestamps for deterministic ordering
+                                    val ts = baseTime + localCount
+                                    notesToInsert.add(
+                                        Note(
+                                            id = 0,
+                                            content = content,
+                                            createdAt = ts,
+                                            updatedAt = ts,
+                                            cachedTitle = if (title.isNotBlank()) title else null
+                                        )
                                     )
-                                    
-                                    repository.insertNote(note)
-                                    importedCount++
+                                    localCount++
                                 }
-                                
-                                        } catch (e: Exception) {
-                // Skip corrupted files, continue import
-                                e.printStackTrace()
+                            } catch (_: Exception) {
+                                // Skip corrupted file, continue
                             }
                         }
-                        
                         zipStream.closeEntry()
                         entry = zipStream.nextEntry
                     }
                 }
             }
-            
-            importedCount
-            
-        } catch (e: Exception) {
-            // Log error and return count of already imported
-            e.printStackTrace()
+
+            if (notesToInsert.isNotEmpty()) {
+                repository.insertNotesInBatch(notesToInsert)
+            }
+
+            notesToInsert.size
+        } catch (_: Exception) {
             0
         }
     }

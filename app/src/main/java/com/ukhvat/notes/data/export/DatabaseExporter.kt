@@ -3,7 +3,9 @@ package com.ukhvat.notes.data.export
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
+import androidx.room.withTransaction
 import com.ukhvat.notes.data.database.AppDatabase
+import android.database.sqlite.SQLiteDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -26,10 +28,15 @@ import com.ukhvat.notes.R
 /**
  * MIGRATED FROM HILT TO KOIN: No dependencies, simple constructor
  */
-class DatabaseExporter {
+class DatabaseExporter(private val database: AppDatabase) {
     
     suspend fun exportDatabase(context: Context): Intent? = withContext(Dispatchers.IO) {
         try {
+            // Barrier: ensure all pending Room writes are flushed before checkpoint
+            try {
+                database.withTransaction { /* no-op barrier */ }
+            } catch (_: Exception) { }
+            
             // Get database file path
             val databasePath = context.getDatabasePath(AppDatabase.DATABASE_NAME)
             
@@ -37,6 +44,15 @@ class DatabaseExporter {
                 return@withContext null
             }
             
+            // Ensure WAL is checkpointed using the same connection pool used by Room
+            try {
+                val supportDb = database.openHelper.writableDatabase
+                supportDb.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
+                supportDb.execSQL("PRAGMA optimize")
+            } catch (ignored: Exception) {
+                // Best-effort; if fails, proceed with file copy
+            }
+
             // Create DB copy in cache folder for export
             val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
             val exportFileName = "note_database_${dateFormat.format(Date())}.db"
