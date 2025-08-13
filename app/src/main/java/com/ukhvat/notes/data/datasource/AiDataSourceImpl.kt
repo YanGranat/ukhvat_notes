@@ -19,7 +19,7 @@ import org.json.JSONObject
  * - Otherwise try Gemini (text-bison/flash where applicable via Generative Language API)
  * - Otherwise try Anthropic Claude
  *
- * NOTE: We keep implementation minimal for a single 'correctText' action.
+     * NOTE: Currently implements 'correctText' and 'generateTitle' actions.
  */
 class AiDataSourceImpl(
     private val okHttpClient: OkHttpClient,
@@ -69,6 +69,59 @@ class AiDataSourceImpl(
         """.trimIndent()
 
         // Use ONLY the selected provider/model; no fallbacks
+        return@withContext when (preferred) {
+            AiProvider.OPENAI -> {
+                val key = openaiKey ?: throw IllegalStateException("OpenAI API key not set")
+                val model = openaiModel ?: throw IllegalStateException("OpenAI model not selected")
+                callOpenAi(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.GEMINI -> {
+                val key = geminiKey ?: throw IllegalStateException("Gemini API key not set")
+                val model = geminiModel ?: throw IllegalStateException("Gemini model not selected")
+                callGemini(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.ANTHROPIC -> {
+                val key = anthropicKey ?: throw IllegalStateException("Anthropic API key not set")
+                val model = anthropicModel ?: throw IllegalStateException("Anthropic model not selected")
+                callAnthropic(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.OPENROUTER -> {
+                val key = openRouterKey ?: throw IllegalStateException("OpenRouter API key not set")
+                val model = openrouterModel ?: throw IllegalStateException("OpenRouter model not selected")
+                callOpenRouter(key, model, systemPrompt, userPrompt)
+            }
+        }
+    }
+
+    override suspend fun generateTitle(note: String): AiDataSource.AiResult = withContext(networkDispatcher) {
+        // Resolve provider/model strictly from settings
+        val preferred = repository.getPreferredAiProvider() ?: throw IllegalStateException("AI provider not set in Settings")
+        val openaiKey = repository.getOpenAiApiKey()
+        val geminiKey = repository.getGeminiApiKey()
+        val anthropicKey = repository.getAnthropicApiKey()
+        val openRouterKey = repository.getOpenRouterApiKey()
+        val openaiModel = repository.getOpenAiModel()
+        val geminiModel = repository.getGeminiModel()
+        val anthropicModel = repository.getAnthropicModel()
+        val openrouterModel = repository.getOpenRouterModel()
+
+        // Build prompt
+        val systemPrompt = """
+            Ты — редактор. Твоя задача — придумать лаконичный заголовок к заметке.
+            Требования:
+            - Одна строка, до 50 символов.
+            - Без дополнительных пояснений.
+            - Сохраняй стиль и смысл автора.
+            Выводи только заголовок.
+        """.trimIndent()
+
+        val userPrompt = """
+            Сгенерируй заголовок для вот этой заметки.
+            <ЗАМЕТКА>
+            $note
+            </ЗАМЕТКА>
+        """.trimIndent()
+
         return@withContext when (preferred) {
             AiProvider.OPENAI -> {
                 val key = openaiKey ?: throw IllegalStateException("OpenAI API key not set")

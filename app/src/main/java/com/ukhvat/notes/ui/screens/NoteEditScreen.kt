@@ -294,6 +294,13 @@ private fun NoteEditContent(
                                       }
                               }
                           )
+                          DropdownMenuItem(
+                              text = { Text(stringResource(R.string.ai_generate_title), color = colors.menuText) },
+                              onClick = {
+                                  showAiMenu = false
+                                  onEvent(NoteEditEvent.AiGenerateTitle)
+                              }
+                          )
                       }
                       // Menu button
                       IconButton(

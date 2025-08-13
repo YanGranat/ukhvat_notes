@@ -182,6 +182,7 @@ class NoteEditViewModel(
             is NoteEditEvent.NavigateBack -> handleNavigateBack()
             is NoteEditEvent.AiFixErrors -> aiFixErrors()
             is NoteEditEvent.AiFixErrorsInRange -> aiFixErrorsInRange(event.start, event.end)
+            is NoteEditEvent.AiGenerateTitle -> aiGenerateTitle()
         }
     }
 
@@ -946,6 +947,98 @@ class NoteEditViewModel(
         }
     }
 
+    /**
+     * AI: Generate title (first line) and insert at the top of the note, followed by an empty line.
+     * Title is sanitized to a single line and trimmed to 50 characters.
+     * Cursor is positioned at the end of the inserted title block (after the empty line).
+     */
+    private fun aiGenerateTitle() {
+        val fullContent = _uiState.value.content.text
+        if (fullContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+
+                // Create version BEFORE title generation (full snapshot)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = fullContent,
+                        changeDescription = context.resources.getString(R.string.version_ai_before_title)
+                    )
+                } catch (_: Exception) {
+                    // Ignore versioning failures for UX
+                }
+
+                val aiResult = aiDataSource.generateTitle(fullContent)
+                val rawTitle = aiResult.text
+                // Sanitize: take first line, trim, limit to 50 chars, keep model punctuation/quotes as-is
+                val firstLine = rawTitle.lineSequence().firstOrNull()?.trim() ?: ""
+                val title = if (firstLine.length > 50) firstLine.substring(0, 50) else firstLine
+
+                val insertedBlock = if (title.isNotEmpty()) "$title\n\n" else "\n\n"
+                val result = insertedBlock + fullContent
+
+                // Place cursor after inserted block (end of empty line)
+                val cursorPos = insertedBlock.length
+                _uiState.value = _uiState.value.copy(
+                    content = TextFieldValue(result, TextRange(cursorPos)),
+                    hasUnsavedChanges = true,
+                    isAiBusy = false
+                )
+
+                // Create version AFTER title generation (full snapshot)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = result,
+                        changeDescription = context.resources.getString(R.string.version_ai_after_title)
+                    )
+                    // Attach AI metadata
+                    try {
+                        val latest = repository.getVersionsForNoteList(currentNoteId).firstOrNull()
+                        latest?.let {
+                            repository.updateVersionAiMeta(
+                                versionId = it.id,
+                                provider = aiResult.provider.name,
+                                model = aiResult.model,
+                                durationMs = System.currentTimeMillis() - startedAt
+                            )
+                        }
+                    } catch (_: Exception) { }
+                } catch (_: Exception) { }
+
+                // Show toast with elapsed time
+                val elapsedMs = System.currentTimeMillis() - startedAt
+                val human = formatElapsed(elapsedMs)
+                if (human.isNotEmpty()) {
+                    toaster.toast(R.string.ai_title_generated_with_time, human)
+                } else {
+                    toaster.toast(R.string.ai_title_generated_short)
+                }
+
+                // Debounced save
+                autoSaveJob?.cancel()
+                autoSaveJob = viewModelScope.launch {
+                    delay(DEBOUNCE_DELAY_MS)
+                    saveNote()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
     // AI meta info for latest correction
     private var lastAiMeta: AiMeta? = null
     data class AiMeta(
@@ -1225,4 +1318,5 @@ sealed class NoteEditEvent {
     object NavigateBack : NoteEditEvent()
     object AiFixErrors : NoteEditEvent()
     data class AiFixErrorsInRange(val start: Int, val end: Int) : NoteEditEvent()
+    object AiGenerateTitle : NoteEditEvent()
 } 

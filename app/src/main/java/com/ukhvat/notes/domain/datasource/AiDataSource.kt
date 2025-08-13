@@ -19,6 +19,13 @@ interface AiDataSource {
      * Returns corrected text with provider and model used. Throws on network or configuration errors.
      */
     suspend fun correctText(original: String): AiResult
+
+    /**
+     * Generates a concise title for the given note content.
+     * The model is instructed to output a single-line title up to 50 characters.
+     * Returns the generated title text with provider and model used.
+     */
+    suspend fun generateTitle(note: String): AiResult
 }
 
 
