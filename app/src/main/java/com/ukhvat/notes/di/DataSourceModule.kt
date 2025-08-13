@@ -13,6 +13,8 @@ import com.ukhvat.notes.domain.datasource.VersionDataSource
 import com.ukhvat.notes.domain.datasource.TrashDataSource
 import com.ukhvat.notes.domain.datasource.PreferencesDataSource
 import org.koin.android.ext.koin.androidContext
+import okhttp3.OkHttpClient
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -94,5 +96,24 @@ val dataSourceModule = module {
         PreferencesDataSourceImpl(
             context = androidContext()
         ) 
+    }
+
+    // ============ AI DATASOURCE ============
+    single {
+        OkHttpClient.Builder()
+            .retryOnConnectionFailure(true)
+            .callTimeout(java.time.Duration.ofSeconds(180))
+            .connectTimeout(java.time.Duration.ofSeconds(180))
+            .readTimeout(java.time.Duration.ofSeconds(180))
+            .writeTimeout(java.time.Duration.ofSeconds(180))
+            .build()
+    }
+
+    single<com.ukhvat.notes.domain.datasource.AiDataSource> {
+        com.ukhvat.notes.data.datasource.AiDataSourceImpl(
+            okHttpClient = get<OkHttpClient>(),
+            networkDispatcher = get(named("network_dispatcher")),
+            repository = get()
+        )
     }
 }

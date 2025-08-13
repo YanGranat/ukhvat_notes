@@ -133,7 +133,7 @@ val appModule = module {
     }
     
     factory<com.ukhvat.notes.ui.screens.NoteEditViewModel> { 
-        com.ukhvat.notes.ui.screens.NoteEditViewModel(get(), get(), androidContext()) // NotesRepository + Toaster + Context
+        com.ukhvat.notes.ui.screens.NoteEditViewModel(get(), get(), androidContext(), get()) // NotesRepository + Toaster + Context + AiDataSource
     }
     
     factory<com.ukhvat.notes.ui.screens.NotesListViewModel> { 

@@ -328,6 +328,55 @@ class ModularNotesRepository(
     override suspend fun saveThemePreference(theme: ThemePreference) {
         preferencesDataSource.saveThemePreference(theme)
     }
+
+    // ============ AI SETTINGS ============
+    override suspend fun getPreferredAiProvider(): com.ukhvat.notes.domain.model.AiProvider? {
+        return preferencesDataSource.getPreferredAiProvider()
+    }
+
+    override suspend fun setPreferredAiProvider(provider: com.ukhvat.notes.domain.model.AiProvider) {
+        preferencesDataSource.setPreferredAiProvider(provider)
+    }
+
+    override suspend fun getOpenAiModel(): String? = preferencesDataSource.getOpenAiModel()
+    override suspend fun setOpenAiModel(model: String) { preferencesDataSource.setOpenAiModel(model) }
+
+    override suspend fun getGeminiModel(): String? = preferencesDataSource.getGeminiModel()
+    override suspend fun setGeminiModel(model: String) { preferencesDataSource.setGeminiModel(model) }
+
+    override suspend fun getAnthropicModel(): String? = preferencesDataSource.getAnthropicModel()
+    override suspend fun setAnthropicModel(model: String) { preferencesDataSource.setAnthropicModel(model) }
+
+    // OpenRouter
+    override suspend fun getOpenRouterApiKey(): String? = preferencesDataSource.getOpenRouterApiKey()
+    override suspend fun setOpenRouterApiKey(key: String) { preferencesDataSource.setOpenRouterApiKey(key) }
+    override suspend fun getOpenRouterModel(): String? = preferencesDataSource.getOpenRouterModel()
+    override suspend fun setOpenRouterModel(model: String) { preferencesDataSource.setOpenRouterModel(model) }
+
+    // ============ AI SETTINGS ============
+    override suspend fun getOpenAiApiKey(): String? {
+        return preferencesDataSource.getOpenAiApiKey()
+    }
+
+    override suspend fun setOpenAiApiKey(key: String) {
+        preferencesDataSource.setOpenAiApiKey(key)
+    }
+
+    override suspend fun getGeminiApiKey(): String? {
+        return preferencesDataSource.getGeminiApiKey()
+    }
+
+    override suspend fun setGeminiApiKey(key: String) {
+        preferencesDataSource.setGeminiApiKey(key)
+    }
+
+    override suspend fun getAnthropicApiKey(): String? {
+        return preferencesDataSource.getAnthropicApiKey()
+    }
+
+    override suspend fun setAnthropicApiKey(key: String) {
+        preferencesDataSource.setAnthropicApiKey(key)
+    }
     
     // ============ VERSIONING ============
     

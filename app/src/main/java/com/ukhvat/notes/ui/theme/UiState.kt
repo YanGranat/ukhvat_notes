@@ -28,6 +28,9 @@ sealed class DialogState {
     data object ImportOptions : DialogState()
     data object About : DialogState()
     data object Language : DialogState()
+    data object Settings : DialogState()
+    data object ApiKeys : DialogState()
+    data object ModelSelection : DialogState()
     data class Export(val content: String, val type: String) : DialogState()
 }
 

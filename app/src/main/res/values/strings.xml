@@ -93,6 +93,15 @@
     <!-- Editor strings -->
     <string name="redo">Повторить</string>
     <string name="save">Сохранить</string>
+    <string name="ai_menu">ИИ</string>
+    <string name="ai_fix_errors">Исправить ошибки</string>
+    <string name="ai_fixed_short">Ошибки исправлены</string>
+    <string name="ai_fixed_with_time">Ошибки исправлены (%1$s)</string>
+    <string name="provider">Провайдер</string>
+    <string name="openai_models">Модели OpenAI</string>
+    <string name="google_gemini_models">Модели Google Gemini</string>
+    <string name="anthropic_models">Модели Anthropic</string>
+    <string name="openrouter_models">Модели OpenRouter</string>
     
     <!-- Export dialog strings -->
     <string name="export_selected_notes">Экспортировать %1$d %2$s:</string>
@@ -330,6 +339,13 @@
     <string name="menu">Меню</string>
     <string name="search">Поиск</string>
     <string name="settings">Настройки</string>
+    <string name="saved">Сохранено</string>
+    <string name="settings_api_keys">API Keys</string>
+    <string name="settings_model_selection">Выбор LLM моделей</string>
+    <string name="api_key_openai">OpenAI API Key</string>
+    <string name="api_key_gemini">Google Gemini API Key</string>
+    <string name="api_key_anthropic">Anthropic Claude API Key</string>
+    <string name="api_key_openrouter">OpenRouter API Key</string>
     <string name="clear">Очистить</string>
     <string name="understand">Понятно</string>
     <string name="previous">Предыдущий</string>

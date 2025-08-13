@@ -197,7 +197,7 @@ private fun NoteEditContent(
                          )
                     }
                 },
-                                                                                                  actions = {
+                                                                                                   actions = {
 
                      
                      // Search button
@@ -213,7 +213,7 @@ private fun NoteEditContent(
                           )
                      }
                      
-                     // Undo/redo buttons with built-in functionality
+                      // Undo/redo buttons with built-in functionality
                      IconButton(
                          onClick = { textController.textFieldState.undoState.undo() },
                          enabled = textController.textFieldState.undoState.canUndo,
@@ -246,7 +246,7 @@ private fun NoteEditContent(
                          )
                      }
 
-                                                                                                                                                                               // Save button
+                        // Save button
                         IconButton(
                             onClick = {
                                 onEvent(NoteEditEvent.ForceSave)
@@ -260,6 +260,36 @@ private fun NoteEditContent(
                                  modifier = Modifier.size(20.dp)
                              )
                         }
+                      // AI button and menu
+                      var showAiMenu by remember { mutableStateOf(false) }
+                      IconButton(
+                          onClick = { showAiMenu = true },
+                          modifier = Modifier.size(40.dp)
+                      ) {
+                          val tintColor = if (uiState.isAiBusy) Color.White.copy(alpha = 0.5f) else Color.White
+                          Icon(
+                              painter = painterResource(id = R.drawable.ic_ai),
+                              contentDescription = stringResource(R.string.ai_menu),
+                              tint = tintColor,
+                              modifier = Modifier.size(20.dp)
+                          )
+                      }
+                      DropdownMenu(
+                          expanded = showAiMenu,
+                          onDismissRequest = { showAiMenu = false },
+                          tonalElevation = if (ColorManager.isDarkTheme()) 0.dp else 2.dp,
+                          shadowElevation = if (ColorManager.isDarkTheme()) 0.dp else 4.dp,
+                          shape = RoundedCornerShape(8.dp),
+                          containerColor = colors.menuBackground
+                      ) {
+                          DropdownMenuItem(
+                              text = { Text(stringResource(R.string.ai_fix_errors), color = colors.menuText) },
+                              onClick = {
+                                  showAiMenu = false
+                                  onEvent(NoteEditEvent.AiFixErrors)
+                              }
+                          )
+                      }
                       // Menu button
                       IconButton(
                           onClick = { showMenu = true },
@@ -418,7 +448,7 @@ private fun NoteEditContent(
           }
 
                                                        // Search bar
-               if (uiState.isSearchMode) {
+                 if (uiState.isSearchMode) {
                    NoteSearchBar(
                        query = uiState.searchQuery,
                        onQueryChange = { query -> onEvent(NoteEditEvent.SearchQueryChanged(query)) },

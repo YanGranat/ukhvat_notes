@@ -106,6 +106,20 @@ val performanceModule = module {
     single<CoroutineDispatcher>(named("preferences_dispatcher")) {
         get<java.util.concurrent.ExecutorService>(named("preferences_executor")).asCoroutineDispatcher()
     }
+
+    // NETWORK EXECUTOR/DISPATCHER (for AI requests and future network I/O)
+    single(named("network_executor")) {
+        Executors.newFixedThreadPool(4) { runnable ->
+            Thread(runnable, "network-${Thread.currentThread().id}").apply {
+                isDaemon = true
+                priority = Thread.NORM_PRIORITY - 1
+            }
+        }
+    }
+
+    single<CoroutineDispatcher>(named("network_dispatcher")) {
+        get<java.util.concurrent.ExecutorService>(named("network_executor")).asCoroutineDispatcher()
+    }
     
     // ============ SPECIALIZED COROUTINE SCOPES ============
     

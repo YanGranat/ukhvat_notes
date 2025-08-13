@@ -123,6 +123,9 @@ dependencies {
     
     // Document file support for folder access
     implementation("androidx.documentfile:documentfile:1.0.1")
+
+    // Network client for AI integrations
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

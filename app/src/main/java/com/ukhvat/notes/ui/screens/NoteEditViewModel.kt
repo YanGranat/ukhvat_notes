@@ -36,7 +36,8 @@ import kotlin.math.abs
 class NoteEditViewModel(
     private val repository: NotesRepository,
     private val toaster: Toaster,
-    private val context: Context
+    private val context: Context,
+    private val aiDataSource: com.ukhvat.notes.domain.datasource.AiDataSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteEditUiState())
@@ -179,6 +180,7 @@ class NoteEditViewModel(
             is NoteEditEvent.NextSearchMatch -> navigateToNextMatch()
             is NoteEditEvent.PreviousSearchMatch -> navigateToPreviousMatch()
             is NoteEditEvent.NavigateBack -> handleNavigateBack()
+            is NoteEditEvent.AiFixErrors -> aiFixErrors()
         }
     }
 
@@ -758,6 +760,68 @@ class NoteEditViewModel(
         _uiState.value = _uiState.value.copy(exportContent = null)
     }
 
+    /**
+     * AI: Fix errors in current note content
+     */
+    private fun aiFixErrors() {
+        val currentContent = _uiState.value.content.text
+        if (currentContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+                val corrected = aiDataSource.correctText(currentContent)
+                // Replace note text and mark as changed; cursor to end
+                _uiState.value = _uiState.value.copy(
+                    content = TextFieldValue(corrected, TextRange(corrected.length)),
+                    hasUnsavedChanges = true,
+                    isAiBusy = false
+                )
+                // Show toast with elapsed time
+                val elapsedMs = System.currentTimeMillis() - startedAt
+                val human = formatElapsed(elapsedMs)
+                if (human.isNotEmpty()) {
+                    toaster.toast(R.string.ai_fixed_with_time, human)
+                } else {
+                    toaster.toast(R.string.ai_fixed_short)
+                }
+                // Trigger save on next debounce cycle
+                autoSaveJob?.cancel()
+                autoSaveJob = viewModelScope.launch {
+                    delay(DEBOUNCE_DELAY_MS)
+                    saveNote()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
+    private fun formatElapsed(ms: Long): String {
+        val seconds = ms / 1000
+        return when {
+            seconds < 60 -> "${seconds} с."
+            seconds < 3600 -> {
+                val m = seconds / 60
+                val s = seconds % 60
+                if (s == 0L) "${m} мин." else "${m} мин. ${s} с."
+            }
+            else -> {
+                val h = seconds / 3600
+                val m = (seconds % 3600) / 60
+                if (m == 0L) "${h} ч." else "${h} ч. ${m} мин."
+            }
+        }
+    }
+
     private fun showNoteInfo() {
 
         
@@ -965,6 +1029,9 @@ data class NoteEditUiState(
     val currentMatchIndex: Int = -1,
     val showSearchNavigation: Boolean = false,
 
+    // AI busy indicator for UI (e.g., greyed icon)
+    val isAiBusy: Boolean = false,
+
 ) {
     /**
      * COMPUTED PROPERTIES for backward compatibility
@@ -1007,4 +1074,5 @@ sealed class NoteEditEvent {
     object NextSearchMatch : NoteEditEvent()
     object PreviousSearchMatch : NoteEditEvent()
     object NavigateBack : NoteEditEvent()
+    object AiFixErrors : NoteEditEvent()
 } 

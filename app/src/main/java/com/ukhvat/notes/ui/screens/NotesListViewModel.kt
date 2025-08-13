@@ -193,6 +193,14 @@ class NotesListViewModel(
             is NotesListEvent.HideExportDialog -> hideExportDialog()
             is NotesListEvent.HideImportDialog -> hideImportDialog()
             is NotesListEvent.RefreshNotesList -> refreshNotesList()
+            is NotesListEvent.ShowSettingsDialog -> showSettings()
+            is NotesListEvent.DismissSettingsDialog -> dismissSettings()
+            is NotesListEvent.ShowApiKeysDialog -> openApiKeys()
+            is NotesListEvent.DismissApiKeysDialog -> dismissApiKeys()
+            is NotesListEvent.SaveApiKeys -> saveApiKeys(event.openAi, event.gemini, event.anthropic, event.openRouter)
+            is NotesListEvent.ShowModelSelectionDialog -> showModelSelection()
+            is NotesListEvent.DismissModelSelectionDialog -> dismissModelSelection()
+            is NotesListEvent.SaveModelSelection -> saveModelSelection(event.provider, event.openAiModel, event.geminiModel, event.anthropicModel, event.openRouterModel)
         }
     }
 
@@ -1004,6 +1012,114 @@ class NotesListViewModel(
     private fun dismissLanguageDialog() {
         _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
     }
+
+    private fun showSettings() {
+        _uiState.value = _uiState.value.copy(dialogState = DialogState.Settings)
+    }
+
+    private fun dismissSettings() {
+        _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
+    }
+
+    private fun openApiKeys() {
+        viewModelScope.launch {
+            try {
+                val open = repository.getOpenAiApiKey() ?: ""
+                val gem = repository.getGeminiApiKey() ?: ""
+                val ant = repository.getAnthropicApiKey() ?: ""
+                _uiState.value = _uiState.value.copy(
+                    dialogState = DialogState.ApiKeys,
+                    openAiKeyDraft = open,
+                    geminiKeyDraft = gem,
+                    anthropicKeyDraft = ant
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.info_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
+    private fun dismissApiKeys() {
+        _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
+    }
+
+    private fun saveApiKeys(openAi: String, gemini: String, anthropic: String, openRouter: String) {
+        viewModelScope.launch {
+            try {
+                repository.setOpenAiApiKey(openAi)
+                repository.setGeminiApiKey(gemini)
+                repository.setAnthropicApiKey(anthropic)
+                repository.setOpenRouterApiKey(openRouter)
+                _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
+                toaster.toast(R.string.saved)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.save_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
+    private fun showModelSelection() {
+        viewModelScope.launch {
+            try {
+                val provider = repository.getPreferredAiProvider() ?: com.ukhvat.notes.domain.model.AiProvider.OPENAI
+                val openAi = repository.getOpenAiModel() ?: "gpt-5-2025-08-07"
+                val gemini = repository.getGeminiModel() ?: "gemini-2.5-flash"
+                val anthropic = repository.getAnthropicModel() ?: "claude-3-7-sonnet-thinking"
+                val openrouter = repository.getOpenRouterModel() ?: "deepseek/deepseek-chat-v3-0324:free"
+                _uiState.value = _uiState.value.copy(
+                    dialogState = DialogState.ModelSelection,
+                    aiProviderDraft = provider,
+                    openAiModelDraft = openAi,
+                    geminiModelDraft = gemini,
+                    anthropicModelDraft = anthropic,
+                    openRouterModelDraft = openrouter
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    dialogState = DialogState.ModelSelection
+                )
+            }
+        }
+    }
+
+    private fun dismissModelSelection() {
+        _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
+    }
+
+    private fun saveModelSelection(
+        provider: com.ukhvat.notes.domain.model.AiProvider,
+        openAiModel: String?,
+        geminiModel: String?,
+        anthropicModel: String?,
+        openRouterModel: String?
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.setPreferredAiProvider(provider)
+                openAiModel?.let { repository.setOpenAiModel(it) }
+                geminiModel?.let { repository.setGeminiModel(it) }
+                anthropicModel?.let { repository.setAnthropicModel(it) }
+                openRouterModel?.let { repository.setOpenRouterModel(it) }
+                _uiState.value = _uiState.value.copy(
+                    dialogState = DialogState.None,
+                    aiProviderDraft = provider,
+                    openAiModelDraft = openAiModel ?: _uiState.value.openAiModelDraft,
+                    geminiModelDraft = geminiModel ?: _uiState.value.geminiModelDraft,
+                    anthropicModelDraft = anthropicModel ?: _uiState.value.anthropicModelDraft,
+                    openRouterModelDraft = openRouterModel ?: _uiState.value.openRouterModelDraft
+                )
+                toaster.toast(R.string.saved)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.save_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
     
     private fun changeLanguage(language: com.ukhvat.notes.domain.model.Language) {
         viewModelScope.launch {
@@ -1112,7 +1228,18 @@ data class NotesListUiState(
     val searchResults: Map<Long, SearchResultInfo> = emptyMap(),
     val expandedNotes: Set<Long> = emptySet(),
     val themeChanged: Long = 0L,
-    val currentTheme: ThemePreference = ThemePreference.SYSTEM
+    val currentTheme: ThemePreference = ThemePreference.SYSTEM,
+    // Drafts for API keys editing
+    val openAiKeyDraft: String = "",
+    val geminiKeyDraft: String = "",
+    val anthropicKeyDraft: String = "",
+    // AI model/provider drafts for ModelSelectionDialog
+    val aiProviderDraft: com.ukhvat.notes.domain.model.AiProvider = com.ukhvat.notes.domain.model.AiProvider.OPENAI,
+    val openAiModelDraft: String = "gpt-5-2025-08-07",
+    val geminiModelDraft: String = "gemini-2.5-flash",
+    val anthropicModelDraft: String = "claude-3-7-sonnet-thinking"
+    ,
+    val openRouterModelDraft: String = "deepseek/deepseek-chat-v3-0324:free"
 ) {
     /**
      * Computed properties for backward compatibility
@@ -1126,6 +1253,9 @@ data class NotesListUiState(
     val showImportOptions: Boolean get() = dialogState is DialogState.ImportOptions
     val showAboutDialog: Boolean get() = dialogState is DialogState.About
     val showLanguageDialog: Boolean get() = dialogState is DialogState.Language
+    val showSettingsDialog: Boolean get() = dialogState is DialogState.Settings
+    val showApiKeysDialog: Boolean get() = dialogState is DialogState.ApiKeys
+    val showModelSelectionDialog: Boolean get() = dialogState is DialogState.ModelSelection
     val showExportDialog: Boolean get() = dialogState is DialogState.Export
     val exportContent: String? get() = (dialogState as? DialogState.Export)?.content
     val exportType: String get() = (dialogState as? DialogState.Export)?.type ?: ""
@@ -1193,4 +1323,18 @@ sealed class NotesListEvent {
     data object ShowImportDialog : NotesListEvent()
     data object HideImportDialog : NotesListEvent()
     data object RefreshNotesList : NotesListEvent()
+    data object ShowSettingsDialog : NotesListEvent()
+    data object DismissSettingsDialog : NotesListEvent()
+    data object ShowApiKeysDialog : NotesListEvent()
+    data object DismissApiKeysDialog : NotesListEvent()
+    data class SaveApiKeys(val openAi: String, val gemini: String, val anthropic: String, val openRouter: String) : NotesListEvent()
+    data object ShowModelSelectionDialog : NotesListEvent()
+    data object DismissModelSelectionDialog : NotesListEvent()
+    data class SaveModelSelection(
+        val provider: com.ukhvat.notes.domain.model.AiProvider,
+        val openAiModel: String? = null,
+        val geminiModel: String? = null,
+        val anthropicModel: String? = null,
+        val openRouterModel: String? = null
+    ) : NotesListEvent()
 } 

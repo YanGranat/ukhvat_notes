@@ -86,4 +86,110 @@ class PreferencesDataSourceImpl(
                 .apply()
         }
     }
+
+    // ============ AI API keys ============
+    override suspend fun getOpenAiApiKey(): String? {
+        return withContext(preferencesDispatcher) {
+            prefs.getString("openai_api_key", null)
+        }
+    }
+
+    override suspend fun setOpenAiApiKey(key: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit()
+                .putString("openai_api_key", key.ifBlank { null })
+                .apply()
+        }
+    }
+
+    override suspend fun getGeminiApiKey(): String? {
+        return withContext(preferencesDispatcher) {
+            prefs.getString("gemini_api_key", null)
+        }
+    }
+
+    override suspend fun setGeminiApiKey(key: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit()
+                .putString("gemini_api_key", key.ifBlank { null })
+                .apply()
+        }
+    }
+
+    override suspend fun getAnthropicApiKey(): String? {
+        return withContext(preferencesDispatcher) {
+            prefs.getString("anthropic_api_key", null)
+        }
+    }
+
+    override suspend fun setAnthropicApiKey(key: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit()
+                .putString("anthropic_api_key", key.ifBlank { null })
+                .apply()
+        }
+    }
+
+    // ============ AI preferences ============
+    override suspend fun getPreferredAiProvider(): com.ukhvat.notes.domain.model.AiProvider? {
+        return withContext(preferencesDispatcher) {
+            prefs.getString("ai_provider", null)?.let {
+                runCatching { com.ukhvat.notes.domain.model.AiProvider.valueOf(it) }.getOrNull()
+            }
+        }
+    }
+
+    override suspend fun setPreferredAiProvider(provider: com.ukhvat.notes.domain.model.AiProvider) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("ai_provider", provider.name).apply()
+        }
+    }
+
+    override suspend fun getOpenAiModel(): String? = withContext(preferencesDispatcher) {
+        prefs.getString("openai_model", null)
+    }
+
+    override suspend fun setOpenAiModel(model: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("openai_model", model.ifBlank { null }).apply()
+        }
+    }
+
+    override suspend fun getGeminiModel(): String? = withContext(preferencesDispatcher) {
+        prefs.getString("gemini_model", null)
+    }
+
+    override suspend fun setGeminiModel(model: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("gemini_model", model.ifBlank { null }).apply()
+        }
+    }
+
+    override suspend fun getAnthropicModel(): String? = withContext(preferencesDispatcher) {
+        prefs.getString("anthropic_model", null)
+    }
+
+    override suspend fun setAnthropicModel(model: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("anthropic_model", model.ifBlank { null }).apply()
+        }
+    }
+
+    // ============ OpenRouter ============
+    override suspend fun getOpenRouterApiKey(): String? = withContext(preferencesDispatcher) {
+        prefs.getString("openrouter_api_key", null)
+    }
+    override suspend fun setOpenRouterApiKey(key: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("openrouter_api_key", key.ifBlank { null }).apply()
+        }
+    }
+    override suspend fun getOpenRouterModel(): String? = withContext(preferencesDispatcher) {
+        prefs.getString("openrouter_model", null)
+    }
+    override suspend fun setOpenRouterModel(model: String) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putString("openrouter_model", model.ifBlank { null }).apply()
+        }
+    }
 }

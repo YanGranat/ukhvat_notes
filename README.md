@@ -28,6 +28,8 @@
 - **🌍 Bilingual** - English and Russian interface
 - **⭐ Favorites** - Mark important notes and see them highlighted in the list
 - **🗄️ Archive (new)** - Archive/unarchive notes (hidden from main list and search), Archive screen with preview, per-note Restore/Delete (to Trash), and bulk actions (Restore all / Delete all)
+- **🤖 AI proofreading (new)** - In-editor AI menu with "Fix errors" using OpenAI/Gemini/Anthropic; API keys in Settings → API Keys
+  - Provider preference and model selection (OpenAI/Gemini/Anthropic/OpenRouter). OpenRouter supported (e.g., deepseek/gemma free models). 180s network timeouts for long texts.
 
 ## 📱 What it does
 
@@ -80,6 +82,7 @@ v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 - **Optimized database queries** - separate metadata/content tables
 - **Batch operations** for high-performance import/export
 - **Archive data flow** - new `ArchiveDataSource`, repository methods, and UI navigation
+- **AI integration** - OkHttp client; provider priority OpenAI → Gemini → Anthropic; default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking); 40s network timeouts; local API key storage
 - **Adaptive text processing** with advanced search algorithms
 
 ## 📄 Export & Import

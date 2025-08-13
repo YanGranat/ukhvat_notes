@@ -422,6 +422,43 @@ private fun NotesListContent(
             onDismiss = { onEvent(NotesListEvent.DismissAboutDialog) }
         )
     }
+
+    // Settings Dialog
+    if (uiState.showSettingsDialog) {
+        SettingsDialog(
+            onApiKeysClick = { onEvent(NotesListEvent.ShowApiKeysDialog) },
+            onModelSelectionClick = { onEvent(NotesListEvent.ShowModelSelectionDialog) },
+            onDismiss = { onEvent(NotesListEvent.DismissSettingsDialog) }
+        )
+    }
+
+    // API Keys Dialog
+    if (uiState.showApiKeysDialog) {
+        ApiKeysDialog(
+            openAiKeyInitial = uiState.openAiKeyDraft,
+            geminiKeyInitial = uiState.geminiKeyDraft,
+            anthropicKeyInitial = uiState.anthropicKeyDraft,
+            openRouterKeyInitial = "",
+            onSave = { openAi, gemini, anthropic, openRouter ->
+                onEvent(NotesListEvent.SaveApiKeys(openAi, gemini, anthropic, openRouter))
+            },
+            onDismiss = { onEvent(NotesListEvent.DismissApiKeysDialog) }
+        )
+    }
+
+    if (uiState.showModelSelectionDialog) {
+        ModelSelectionDialog(
+            currentProvider = uiState.aiProviderDraft,
+            currentOpenAiModel = uiState.openAiModelDraft,
+            currentGeminiModel = uiState.geminiModelDraft,
+            currentAnthropicModel = uiState.anthropicModelDraft,
+            currentOpenRouterModel = uiState.openRouterModelDraft,
+            onSave = { provider, openAi, gemini, anthropic, openRouter ->
+                onEvent(NotesListEvent.SaveModelSelection(provider, openAi, gemini, anthropic, openRouter))
+            },
+            onDismiss = { onEvent(NotesListEvent.DismissModelSelectionDialog) }
+        )
+    }
     
     // Language Dialog  
     if (uiState.showLanguageDialog) {
@@ -1019,6 +1056,13 @@ private fun NotesTopAppBar(
                              onEvent(NotesListEvent.ShowExportOptions)
                          }
                      )
+                      DropdownMenuItem(
+                          text = { Text(stringResource(R.string.settings), color = colors.menuText) },
+                          onClick = {
+                              onShowMenuChange(false)
+                              onEvent(NotesListEvent.ShowSettingsDialog)
+                          }
+                      )
                      DropdownMenuItem(
                          text = { Text(stringResource(R.string.about_app), color = colors.menuText) },
                          onClick = {

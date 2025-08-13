@@ -54,4 +54,39 @@ interface PreferencesDataSource {
      * @param intervalMs Interval in milliseconds
      */
     suspend fun setAutoSaveInterval(intervalMs: Long)
+
+    // ============ AI API keys ============
+    /** Get saved OpenAI API key (or null if not set) */
+    suspend fun getOpenAiApiKey(): String?
+    /** Save OpenAI API key (empty string clears) */
+    suspend fun setOpenAiApiKey(key: String)
+
+    /** Get saved Google Gemini API key (or null if not set) */
+    suspend fun getGeminiApiKey(): String?
+    /** Save Google Gemini API key (empty string clears) */
+    suspend fun setGeminiApiKey(key: String)
+
+    /** Get saved Anthropic Claude API key (or null if not set) */
+    suspend fun getAnthropicApiKey(): String?
+    /** Save Anthropic Claude API key (empty string clears) */
+    suspend fun setAnthropicApiKey(key: String)
+
+    // ============ AI preferences ============
+    /** Preferred provider (OPENAI/GEMINI/ANTHROPIC) */
+    suspend fun getPreferredAiProvider(): com.ukhvat.notes.domain.model.AiProvider?
+    suspend fun setPreferredAiProvider(provider: com.ukhvat.notes.domain.model.AiProvider)
+
+    /** Preferred model per provider */
+    suspend fun getOpenAiModel(): String?
+    suspend fun setOpenAiModel(model: String)
+    suspend fun getGeminiModel(): String?
+    suspend fun setGeminiModel(model: String)
+    suspend fun getAnthropicModel(): String?
+    suspend fun setAnthropicModel(model: String)
+
+    // OpenRouter
+    suspend fun getOpenRouterApiKey(): String?
+    suspend fun setOpenRouterApiKey(key: String)
+    suspend fun getOpenRouterModel(): String?
+    suspend fun setOpenRouterModel(model: String)
 }

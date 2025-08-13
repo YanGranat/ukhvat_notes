@@ -2,6 +2,10 @@ package com.ukhvat.notes.data.util
 
 import android.content.Context
 import android.widget.Toast
+import android.widget.TextView
+import android.graphics.drawable.GradientDrawable
+import android.graphics.Color
+import android.util.TypedValue
 import androidx.annotation.StringRes
 import com.ukhvat.notes.domain.util.Toaster
 import kotlinx.coroutines.Dispatchers
@@ -40,16 +44,16 @@ class ToasterImpl(
 ) : Toaster {
     
     override suspend fun toast(@StringRes textRes: Int) = withContext(Dispatchers.Main) {
-        Toast.makeText(context, context.getString(textRes), Toast.LENGTH_SHORT).show()
+        showCustomToast(context.getString(textRes))
     }
     
     override suspend fun toast(text: String) = withContext(Dispatchers.Main) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+        showCustomToast(text)
     }
     
     override suspend fun toast(@StringRes textRes: Int, vararg formatArgs: Any) = withContext(Dispatchers.Main) {
         val formattedText = context.getString(textRes, *formatArgs)
-        Toast.makeText(context, formattedText, Toast.LENGTH_SHORT).show()
+        showCustomToast(formattedText)
     }
     
     override suspend fun toastIf(
@@ -63,4 +67,33 @@ class ToasterImpl(
         text: String,
         block: () -> Unit
     ) = if (condition) toast(text) else block()
+
+    private fun showCustomToast(message: String) {
+        val density = context.resources.displayMetrics.density
+        val paddingH = (16 * density).toInt()
+        val paddingV = (10 * density).toInt()
+        val radius = 8 * density
+
+        val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val bgColor = if (isNight) Color.parseColor("#424242") else Color.parseColor("#323232")
+        val textColor = Color.WHITE
+
+        val bgDrawable = GradientDrawable().apply {
+            cornerRadius = radius
+            setColor(bgColor)
+        }
+
+        val tv = TextView(context).apply {
+            text = message
+            setTextColor(textColor)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(paddingH, paddingV, paddingH, paddingV)
+            background = bgDrawable
+        }
+
+        val toast = Toast(context)
+        toast.duration = Toast.LENGTH_SHORT
+        toast.view = tv
+        toast.show()
+    }
 }

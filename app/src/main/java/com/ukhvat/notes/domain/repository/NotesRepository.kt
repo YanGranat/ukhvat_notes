@@ -183,4 +183,28 @@ interface NotesRepository {
     suspend fun restoreFromArchive(id: Long)
     /** Удалить из архива (в корзину) */
     suspend fun deleteFromArchive(id: Long)
+
+    // ============ AI Settings ============
+    suspend fun getOpenAiApiKey(): String?
+    suspend fun setOpenAiApiKey(key: String)
+    suspend fun getGeminiApiKey(): String?
+    suspend fun setGeminiApiKey(key: String)
+    suspend fun getAnthropicApiKey(): String?
+    suspend fun setAnthropicApiKey(key: String)
+
+    // ============ AI Settings ============
+    suspend fun getPreferredAiProvider(): com.ukhvat.notes.domain.model.AiProvider?
+    suspend fun setPreferredAiProvider(provider: com.ukhvat.notes.domain.model.AiProvider)
+    suspend fun getOpenAiModel(): String?
+    suspend fun setOpenAiModel(model: String)
+    suspend fun getGeminiModel(): String?
+    suspend fun setGeminiModel(model: String)
+    suspend fun getAnthropicModel(): String?
+    suspend fun setAnthropicModel(model: String)
+
+    // OpenRouter
+    suspend fun getOpenRouterApiKey(): String?
+    suspend fun setOpenRouterApiKey(key: String)
+    suspend fun getOpenRouterModel(): String?
+    suspend fun setOpenRouterModel(model: String)
 } 
