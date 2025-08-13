@@ -286,7 +286,12 @@ private fun NoteEditContent(
                               text = { Text(stringResource(R.string.ai_fix_errors), color = colors.menuText) },
                               onClick = {
                                   showAiMenu = false
-                                  onEvent(NoteEditEvent.AiFixErrors)
+                                      val sel = textController.textFieldState.selection
+                                      if (!sel.collapsed) {
+                                          onEvent(NoteEditEvent.AiFixErrorsInRange(sel.start, sel.end))
+                                      } else {
+                                          onEvent(NoteEditEvent.AiFixErrors)
+                                      }
                               }
                           )
                       }

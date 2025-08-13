@@ -181,6 +181,7 @@ class NoteEditViewModel(
             is NoteEditEvent.PreviousSearchMatch -> navigateToPreviousMatch()
             is NoteEditEvent.NavigateBack -> handleNavigateBack()
             is NoteEditEvent.AiFixErrors -> aiFixErrors()
+            is NoteEditEvent.AiFixErrorsInRange -> aiFixErrorsInRange(event.start, event.end)
         }
     }
 
@@ -842,6 +843,109 @@ class NoteEditViewModel(
         }
     }
 
+    /**
+     * AI: Fix errors only in the selected text range [start, end)
+     * Replaces the selected fragment with corrected text and positions cursor
+     * at the end of the corrected fragment.
+     */
+    private fun aiFixErrorsInRange(start: Int, end: Int) {
+        val fullContent = _uiState.value.content.text
+        if (fullContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+
+        // Normalize range
+        val safeStart = start.coerceIn(0, fullContent.length)
+        val safeEnd = end.coerceIn(safeStart, fullContent.length)
+
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+
+                // Create version BEFORE AI correction (full snapshot)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = fullContent,
+                        changeDescription = context.resources.getString(R.string.version_ai_before_fix)
+                    )
+                } catch (_: Exception) {
+                    // Versioning errors should not affect user experience
+                }
+
+                val selectedText = fullContent.substring(safeStart, safeEnd)
+                val aiResult = aiDataSource.correctText(selectedText)
+                val corrected = aiResult.text
+
+                // Build resulting content with corrected fragment
+                val result = buildString(fullContent.length - (safeEnd - safeStart) + corrected.length) {
+                    append(fullContent, 0, safeStart)
+                    append(corrected)
+                    append(fullContent, safeEnd, fullContent.length)
+                }
+
+                // Update content and move cursor to end of corrected fragment
+                _uiState.value = _uiState.value.copy(
+                    content = TextFieldValue(result, TextRange(safeStart + corrected.length)),
+                    hasUnsavedChanges = true,
+                    isAiBusy = false
+                )
+
+                // Create version AFTER AI correction (full snapshot)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = result,
+                        changeDescription = context.resources.getString(R.string.version_ai_after_fix)
+                    )
+                    // Attach AI metadata to the latest version
+                    try {
+                        val latest = repository.getVersionsForNoteList(currentNoteId).firstOrNull()
+                        latest?.let {
+                            repository.updateVersionAiMeta(
+                                versionId = it.id,
+                                provider = aiResult.provider.name,
+                                model = aiResult.model,
+                                durationMs = System.currentTimeMillis() - startedAt
+                            )
+                        }
+                    } catch (_: Exception) {
+                        // Ignore meta attachment failures
+                    }
+                } catch (_: Exception) {
+                    // Versioning errors should not affect user experience
+                }
+
+                // Show toast with elapsed time (reuse existing strings)
+                val elapsedMs = System.currentTimeMillis() - startedAt
+                val human = formatElapsed(elapsedMs)
+                if (human.isNotEmpty()) {
+                    toaster.toast(R.string.ai_fixed_with_time, human)
+                } else {
+                    toaster.toast(R.string.ai_fixed_short)
+                }
+                // Store last AI operation meta for VersionInfo dialog
+                lastAiMeta = AiMeta(provider = aiResult.provider, model = aiResult.model, elapsedMs = elapsedMs)
+
+                // Trigger save on next debounce cycle
+                autoSaveJob?.cancel()
+                autoSaveJob = viewModelScope.launch {
+                    delay(DEBOUNCE_DELAY_MS)
+                    saveNote()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
     // AI meta info for latest correction
     private var lastAiMeta: AiMeta? = null
     data class AiMeta(
@@ -1120,4 +1224,5 @@ sealed class NoteEditEvent {
     object PreviousSearchMatch : NoteEditEvent()
     object NavigateBack : NoteEditEvent()
     object AiFixErrors : NoteEditEvent()
+    data class AiFixErrorsInRange(val start: Int, val end: Int) : NoteEditEvent()
 } 
