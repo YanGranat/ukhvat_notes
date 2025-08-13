@@ -82,7 +82,7 @@ v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 - **Optimized database queries** - separate metadata/content tables
 - **Batch operations** for high-performance import/export
 - **Archive data flow** - new `ArchiveDataSource`, repository methods, and UI navigation
-- **AI integration** - OkHttp client; provider priority OpenAI → Gemini → Anthropic; default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking); 40s network timeouts; local API key storage
+- **AI integration** - OkHttp client; provider priority OpenAI → Gemini → Anthropic; default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking); local API key storage
 - **Adaptive text processing** with advanced search algorithms
 
 ## 📄 Export & Import

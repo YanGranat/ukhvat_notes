@@ -119,6 +119,8 @@
     <string name="version_creation">Создание заметки</string>
     <string name="version_autosave">Автосохранение</string>
     <string name="version_force_save">Принудительное сохранение</string>
+    <string name="version_ai_before_fix">ИИ: резервная копия перед исправлением</string>
+    <string name="version_ai_after_fix">ИИ: исправленный вариант</string>
     
     <!-- Error messages -->
     <string name="save_error">Ошибка сохранения: %1$s</string>

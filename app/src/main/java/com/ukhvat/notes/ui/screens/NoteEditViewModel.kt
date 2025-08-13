@@ -775,6 +775,16 @@ class NoteEditViewModel(
             try {
                 _uiState.value = _uiState.value.copy(isAiBusy = true)
                 val startedAt = System.currentTimeMillis()
+                // Create version BEFORE AI correction (non-blocking for UX)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = currentContent,
+                        changeDescription = context.resources.getString(R.string.version_ai_before_fix)
+                    )
+                } catch (_: Exception) {
+                    // Versioning errors should not affect user experience
+                }
                 val corrected = aiDataSource.correctText(currentContent)
                 // Replace note text and mark as changed; cursor to end
                 _uiState.value = _uiState.value.copy(
@@ -782,6 +792,16 @@ class NoteEditViewModel(
                     hasUnsavedChanges = true,
                     isAiBusy = false
                 )
+                // Create version AFTER AI correction (non-blocking for UX)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = corrected,
+                        changeDescription = context.resources.getString(R.string.version_ai_after_fix)
+                    )
+                } catch (_: Exception) {
+                    // Versioning errors should not affect user experience
+                }
                 // Show toast with elapsed time
                 val elapsedMs = System.currentTimeMillis() - startedAt
                 val human = formatElapsed(elapsedMs)

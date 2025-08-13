@@ -119,6 +119,8 @@
     <string name="version_creation">Note creation</string>
     <string name="version_autosave">Autosave</string>
     <string name="version_force_save">Force save</string>
+    <string name="version_ai_before_fix">AI: backup before correction</string>
+    <string name="version_ai_after_fix">AI: corrected version</string>
     
     <!-- Error messages -->
     <string name="save_error">Save error: %1$s</string>
