@@ -301,6 +301,13 @@ private fun NoteEditContent(
                                   onEvent(NoteEditEvent.AiGenerateTitle)
                               }
                           )
+                           DropdownMenuItem(
+                               text = { Text(stringResource(R.string.ai_generate_hashtags), color = colors.menuText) },
+                               onClick = {
+                                   showAiMenu = false
+                                   onEvent(NoteEditEvent.AiGenerateHashtags)
+                               }
+                           )
                       }
                       // Menu button
                       IconButton(
@@ -324,7 +331,7 @@ private fun NoteEditContent(
                      ) {
 
                          
-                         DropdownMenuItem(
+                          DropdownMenuItem(
                                                            text = { 
                                   Row(verticalAlignment = Alignment.CenterVertically) {
                                       Icon(
@@ -581,7 +588,16 @@ private fun NoteEditContent(
     if (uiState.showNoteInfo && uiState.noteInfo != null) {
         NoteInfoDialog(
             noteInfo = uiState.noteInfo,
-            onDismiss = onClearNoteInfo
+            onDismiss = onClearNoteInfo,
+            onEditHashtags = { onEvent(NoteEditEvent.EditHashtags) }
+        )
+    }
+
+    if (uiState.showHashtagEditor) {
+        HashtagEditorDialog(
+            text = uiState.hashtagEditorText,
+            onDismiss = { onEvent(NoteEditEvent.CancelHashtagsEdit) },
+            onSave = { raw -> onEvent(NoteEditEvent.SaveHashtags(raw)) }
         )
     }
 }
@@ -589,7 +605,8 @@ private fun NoteEditContent(
 @Composable
 private fun NoteInfoDialog(
     noteInfo: NoteInfo,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onEditHashtags: () -> Unit
 ) {
     val colors = rememberGlobalColors()
     val createdDate = remember(noteInfo.createdAt) {
@@ -602,21 +619,62 @@ private fun NoteInfoDialog(
             .format(java.util.Date(noteInfo.updatedAt))
     }
 
-                                     AlertDialog(
+    var showMenu by remember { mutableStateOf(false) }
+    AlertDialog(
            onDismissRequest = onDismiss,
            containerColor = colors.dialogBackground,
           title = { 
-                            Text(
-                   stringResource(R.string.note_info_title),
-                   fontSize = 18.sp,
-                   fontWeight = FontWeight.Medium,
-                   color = colors.dialogText
-               ) 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(R.string.note_info_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colors.dialogText
+                )
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.menu),
+                            tint = colors.dialogText
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        tonalElevation = if (ColorManager.isDarkTheme()) 0.dp else 2.dp,
+                        shadowElevation = if (ColorManager.isDarkTheme()) 0.dp else 4.dp,
+                        shape = RoundedCornerShape(8.dp),
+                        containerColor = colors.menuBackground
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.hashtags_menu_item), color = colors.menuText) },
+                            onClick = {
+                                showMenu = false
+                                onEditHashtags()
+                            }
+                        )
+                    }
+                }
+            }
           },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+            if (noteInfo.hashtags.isNotEmpty()) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = noteInfo.hashtags.joinToString(" ") { "#" + it },
+                        color = colors.primary,
+                        fontSize = 16.sp
+                    )
+                }
+            }
                             InfoRow(stringResource(R.string.created), createdDate, colors)
             InfoRow(stringResource(R.string.modified), updatedDate, colors)
             InfoRow(stringResource(R.string.characters), noteInfo.characterCount.toString(), colors)
@@ -638,6 +696,52 @@ private fun InfoRow(label: String, value: String, colors: GlobalColorBundle) {
         color = colors.dialogText,
         fontSize = 16.sp,
         modifier = Modifier.fillMaxWidth()
+    )
+}
+
+
+@Composable
+private fun HashtagEditorDialog(
+    text: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    val colors = rememberGlobalColors()
+    var value by remember(text) { mutableStateOf(text) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.dialogBackground,
+        shape = RoundedCornerShape(12.dp),
+        title = {
+            Text(stringResource(R.string.hashtags_edit_title), color = colors.dialogText)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    stringResource(R.string.hashtags_edit_hint),
+                    color = colors.textSecondary
+                )
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { value = it },
+                    singleLine = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colors.text,
+                        unfocusedTextColor = colors.text
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(value) }) {
+                Text(stringResource(R.string.save), color = colors.buttonAccent)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel), color = colors.dialogText)
+            }
+        }
     )
 }
 

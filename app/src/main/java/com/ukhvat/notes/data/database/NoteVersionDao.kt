@@ -77,6 +77,23 @@ interface NoteVersionDao {
     suspend fun cleanupOldVersions(noteId: Long, keepCount: Int)
 
     /**
+     * Keep latest [keepCount] versions overall and preserve ALL forced versions.
+     * Deletes only non-forced (isForcedSave = 0) versions that are older than the latest [keepCount].
+     */
+    @Query("""
+        DELETE FROM note_versions
+        WHERE noteId = :noteId
+        AND isForcedSave = 0
+        AND id NOT IN (
+            SELECT id FROM note_versions
+            WHERE noteId = :noteId
+            ORDER BY timestamp DESC
+            LIMIT :keepCount
+        )
+    """)
+    suspend fun cleanupNonForcedVersionsKeepLatest(noteId: Long, keepCount: Int)
+
+    /**
      * Batch operation: bulk cleanup of old versions for multiple notes
      * Оптимизирует процесс очистки при обработке больших объемов данных
      */
@@ -121,6 +138,9 @@ interface NoteVersionDao {
 
     @Query("UPDATE note_versions SET aiProvider = :provider, aiModel = :model, aiDurationMs = :durationMs WHERE id = :versionId")
     suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
+
+    @Query("UPDATE note_versions SET aiHashtags = :hashtags WHERE id = :versionId")
+    suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?)
 
     /**
      * Получить количество принудительно созданных версий для заметки

@@ -93,6 +93,67 @@ class AiDataSourceImpl(
         }
     }
 
+    override suspend fun generateHashtags(note: String, existing: List<String>): AiDataSource.AiResult = withContext(networkDispatcher) {
+        val preferred = repository.getPreferredAiProvider() ?: throw IllegalStateException("AI provider not set in Settings")
+        val openaiKey = repository.getOpenAiApiKey()
+        val geminiKey = repository.getGeminiApiKey()
+        val anthropicKey = repository.getAnthropicApiKey()
+        val openRouterKey = repository.getOpenRouterApiKey()
+        val openaiModel = repository.getOpenAiModel()
+        val geminiModel = repository.getGeminiModel()
+        val anthropicModel = repository.getAnthropicModel()
+        val openrouterModel = repository.getOpenRouterModel()
+
+        val systemPrompt = """
+            Ты — ассистент по тегам. Сформируй окончательный набор релевантных хештегов для заметки основываясь на сути заметки. Если суть заметки можно охарактеризовать одним или двумя хештегами, то лучше так и поступить, не стоит добавлять хештеги ради количества, только если они действительно хорошо отражают суть заметки. Но при решении о удалении заметки будь менее строгим, если хештег релевантный, то оставляй.
+            Обязательно проанализируй текущие хештеги (если есть):
+            • Если они релевантны и достаточно хорошо характеризуют заметку — верни их БЕЗ изменений.
+            • Если чего‑то не хватает — ДОБАВЬ новые теги, не удаляя релевантные существующие.
+            • Если часть текущих нерелевантна — исключи только их.
+            Требования к выводу:
+            • Одна строка, только хештеги через пробел, без комментариев.
+            • Всего 1–5 хештегов (учитывая уже существующие).
+            • Каждый начинается с #; только буквы/цифры/подчёркивание; без пробелов внутри; длина ≤ 20 символов.
+            • Язык тегов совпадает с языком заметки.
+        """.trimIndent()
+
+        val existingLine = if (existing.isNotEmpty()) existing.joinToString(" ") { "#" + it.replace(" ", "_") } else "(нет)"
+        val userPrompt = buildString {
+            appendLine("ТЕКУЩИЕ ХЕШТЕГИ:")
+            appendLine(existingLine)
+            appendLine()
+            appendLine("ТЕКСТ ЗАМЕТКИ:")
+            appendLine("<<<BEGIN_NOTE>>>")
+            appendLine(note)
+            appendLine("<<<END_NOTE>>>")
+            appendLine()
+            appendLine("Верни одну строку — окончательный список хештегов по правилам.")
+        }
+
+        when (preferred) {
+            AiProvider.OPENAI -> {
+                val key = openaiKey ?: throw IllegalStateException("OpenAI API key not set")
+                val model = openaiModel ?: throw IllegalStateException("OpenAI model not selected")
+                callOpenAi(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.GEMINI -> {
+                val key = geminiKey ?: throw IllegalStateException("Gemini API key not set")
+                val model = geminiModel ?: throw IllegalStateException("Gemini model not selected")
+                callGemini(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.ANTHROPIC -> {
+                val key = anthropicKey ?: throw IllegalStateException("Anthropic API key not set")
+                val model = anthropicModel ?: throw IllegalStateException("Anthropic model not selected")
+                callAnthropic(key, model, systemPrompt, userPrompt)
+            }
+            AiProvider.OPENROUTER -> {
+                val key = openRouterKey ?: throw IllegalStateException("OpenRouter API key not set")
+                val model = openrouterModel ?: throw IllegalStateException("OpenRouter model not selected")
+                callOpenRouter(key, model, systemPrompt, userPrompt)
+            }
+        }
+    }
+
     override suspend fun generateTitle(note: String): AiDataSource.AiResult = withContext(networkDispatcher) {
         // Resolve provider/model strictly from settings
         val preferred = repository.getPreferredAiProvider() ?: throw IllegalStateException("AI provider not set in Settings")

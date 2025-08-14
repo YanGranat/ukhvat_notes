@@ -50,7 +50,7 @@ val appModule = module {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-         .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11)
+         .addMigrations(AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11, AppDatabase.MIGRATION_11_12)
          .setQueryExecutor(Dispatchers.IO.asExecutor())  // DB operations in background thread
          .build()
     }
@@ -59,6 +59,7 @@ val appModule = module {
     single<NoteMetadataDao> { get<AppDatabase>().noteMetadataDao() }
     single<NoteContentDao> { get<AppDatabase>().noteContentDao() }
     single<NoteVersionDao> { get<AppDatabase>().noteVersionDao() }
+    single<com.ukhvat.notes.data.database.NoteTagDao> { get<AppDatabase>().noteTagDao() }
     
     // Repository interface binding - NEW MODULAR ARCHITECTURE
     single<NotesRepository> { 
@@ -68,7 +69,8 @@ val appModule = module {
             versionDataSource = get(),     // VersionDataSource  
             trashDataSource = get(),       // TrashDataSource
             archiveDataSource = get(),     // ArchiveDataSource
-            preferencesDataSource = get()  // PreferencesDataSource
+            preferencesDataSource = get(), // PreferencesDataSource
+            tagDataSource = get()          // TagDataSource
         )
     }
     

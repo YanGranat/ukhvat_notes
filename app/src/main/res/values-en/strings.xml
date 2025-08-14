@@ -96,6 +96,7 @@
     <string name="ai_menu">AI</string>
     <string name="ai_fix_errors">Fix errors</string>
     <string name="ai_generate_title">Generate title</string>
+    <string name="ai_generate_hashtags">Generate hashtags</string>
     <string name="ai_fixed_short">Errors fixed</string>
     <string name="ai_fixed_with_time">Errors fixed (%1$s)</string>
     <string name="provider">Provider</string>
@@ -125,6 +126,7 @@
     <string name="version_ai_before_title">Generate title (before)</string>
     <string name="version_ai_after_title">Generate title (after)</string>
     <string name="version_info">Info</string>
+    <string name="version_ai_added_hashtags">Hashtags added</string>
     <string name="ai_info_dialog_title">Correction details</string>
     <string name="ai_info_provider">Provider: %1$s</string>
     <string name="ai_info_model">Model: %1$s</string>
@@ -260,6 +262,12 @@
     <string name="loading_triple_dots">Loading...</string>
     <string name="search_in_note_desc">Search in note</string>
     <string name="note_info_title">Note information</string>
+    <string name="hashtags_label">Hashtags</string>
+    <string name="hashtags_menu_item">Hashtags</string>
+    <string name="hashtags_edit_title">Hashtags</string>
+    <string name="hashtags_edit_hint">List hashtags separated by commas or spaces. You may use #; spaces will be replaced with underscores.</string>
+    <string name="hashtags_generated">Hashtags generated</string>
+    <string name="hashtags_saved">Hashtags saved</string>
     <string name="delete_note_question">Delete note?</string>
     <string name="cannot_undo">This action cannot be undone</string>
     <string name="search_in_note_placeholder">Search in note...</string>

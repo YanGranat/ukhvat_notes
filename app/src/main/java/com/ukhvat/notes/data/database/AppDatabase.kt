@@ -11,15 +11,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         NoteMetadataEntity::class,  // Новая: легкие метаданные
         NoteContentEntity::class,   // Новая: тяжелое содержимое  
-        NoteVersionEntity::class    // Остается: история версий
+        NoteVersionEntity::class,   // Остается: история версий
+        NoteTagEntity::class        // Новая: нормализованные хештеги
     ],
-    version = 11,  // Версия 11: AI meta in note_versions (aiProvider, aiModel, aiDurationMs)
+    version = 12,  // v12: note_tags table + note_versions.aiHashtags
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteMetadataDao(): NoteMetadataDao  // Новый DAO для метаданных
     abstract fun noteContentDao(): NoteContentDao    // Новый DAO для содержимого
     abstract fun noteVersionDao(): NoteVersionDao    // Остается без изменений
+    abstract fun noteTagDao(): NoteTagDao            // DAO для хештегов
 
     companion object {
         const val DATABASE_NAME = "note_database"
@@ -47,6 +49,27 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE note_versions ADD COLUMN aiProvider TEXT")
                 db.execSQL("ALTER TABLE note_versions ADD COLUMN aiModel TEXT")
                 db.execSQL("ALTER TABLE note_versions ADD COLUMN aiDurationMs INTEGER")
+            }
+        }
+
+        // Миграция 11->12: таблица note_tags и колонка aiHashtags в note_versions
+        val MIGRATION_11_12: Migration = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Create note_tags table
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS note_tags (
+                        noteId INTEGER NOT NULL,
+                        tag TEXT NOT NULL,
+                        PRIMARY KEY(noteId, tag),
+                        FOREIGN KEY(noteId) REFERENCES note_metadata(id) ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_note_tags_tag ON note_tags(tag)")
+
+                // Add aiHashtags column to note_versions
+                db.execSQL("ALTER TABLE note_versions ADD COLUMN aiHashtags TEXT")
             }
         }
     }

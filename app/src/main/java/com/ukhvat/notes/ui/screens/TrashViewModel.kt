@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
  * - MVVM pattern with StateFlow for reactivity
  * - Automatic subscription to trash changes
  * - Optimistic UI updates for fast responsiveness
- * - Hilt DI for dependency injection
+ * - Koin DI for dependency injection
  * 
  * @param repository Repository for notes and trash operations
  * @param toaster Service for displaying Toast notifications

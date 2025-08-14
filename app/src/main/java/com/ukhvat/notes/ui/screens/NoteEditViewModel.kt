@@ -47,6 +47,7 @@ class NoteEditViewModel(
     private var searchJob: Job? = null           // ONLY for search
     private var versionCheckJob: Job? = null     // For periodic versioning check
     private var currentNoteId: Long = 0L
+    private var currentNoteCreatedAt: Long = 0L  // Preserve original creation time for updates
     private var isSearchFromNavigation = false   // Flag to protect search from auto-reset
     private var wasSearchClearedByUser = false   // Flag to track user search reset
     
@@ -116,6 +117,8 @@ class NoteEditViewModel(
             try {
                 // Load note from DB (always real note with ID)
                 repository.getNoteById(noteId)?.let { note ->
+                        // Preserve original createdAt for future updates
+                        currentNoteCreatedAt = note.createdAt
                         // UX optimization: cursor at end for convenient note editing
                         val initialContent = if (hasSearchParams) {
                             // Search navigation - position will be set by search logic
@@ -183,6 +186,10 @@ class NoteEditViewModel(
             is NoteEditEvent.AiFixErrors -> aiFixErrors()
             is NoteEditEvent.AiFixErrorsInRange -> aiFixErrorsInRange(event.start, event.end)
             is NoteEditEvent.AiGenerateTitle -> aiGenerateTitle()
+            is NoteEditEvent.AiGenerateHashtags -> aiGenerateHashtags()
+            is NoteEditEvent.EditHashtags -> editHashtags()
+            is NoteEditEvent.SaveHashtags -> saveHashtags(event.raw)
+            is NoteEditEvent.CancelHashtagsEdit -> cancelHashtagsEdit()
         }
     }
 
@@ -282,7 +289,7 @@ class NoteEditViewModel(
                     id = noteId,
                     content = content,
                     updatedAt = System.currentTimeMillis(),
-                    createdAt = 0L, // Not used during update
+                    createdAt = currentNoteCreatedAt, // Preserve original creation time on update
                     isFavorite = currentUiState.isFavorite
                 )
                 
@@ -462,7 +469,7 @@ class NoteEditViewModel(
                     id = currentNoteId,
                     content = contentToSave,
                     updatedAt = System.currentTimeMillis(),
-                    createdAt = 0L, // Not used during update
+                    createdAt = currentNoteCreatedAt, // Preserve original creation time on update
                     isFavorite = _uiState.value.isFavorite
                 )
                 repository.updateNote(updatedNote)
@@ -1072,11 +1079,13 @@ class NoteEditViewModel(
                 val currentNote = repository.getNoteById(currentNoteId)
                 if (currentNote != null) {
                     val content = currentNote.content
+                    val tags = try { repository.getTags(currentNoteId) } catch (_: Exception) { emptyList() }
                     val noteInfo = NoteInfo(
                         createdAt = currentNote.createdAt,
                         updatedAt = currentNote.updatedAt,
                         characterCount = content.length,
-                        wordCount = if (content.isBlank()) 0 else content.trim().split("\\s+".toRegex()).size
+                        wordCount = if (content.isBlank()) 0 else content.trim().split("\\s+".toRegex()).size,
+                        hashtags = tags
                     )
                     
                     _uiState.value = _uiState.value.copy(
@@ -1231,6 +1240,185 @@ class NoteEditViewModel(
         }
     }
 
+    /**
+     * AI: Generate hashtags based on full note content and existing tags.
+     * Creates a new version with description "Добавлены хештеги" and stores provider/model/time and hashtags string.
+     */
+    private fun aiGenerateHashtags() {
+        val fullContent = _uiState.value.content.text
+        if (fullContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+                val existing = try { repository.getTags(currentNoteId) } catch (_: Exception) { emptyList() }
+                val aiResult = aiDataSource.generateHashtags(fullContent, existing)
+                val line = aiResult.text.trim().replace("\n", " ")
+                val parsed = parseHashtagLine(line)
+                // Merge policy: если модель вернула только часть и они совпадают с существующими,
+                // мы оставим существующие. Если вернула расширенный список — примем его как финальный.
+                val finalTags = if (existing.isNotEmpty()) {
+                    val lowerExisting = existing.map { it.lowercase() }.toSet()
+                    val lowerParsed = parsed.map { it.lowercase() }
+                    // Если parsed ⊆ existing → считаем, что существующие актуальны, остаёмся при них
+                    if (lowerParsed.isNotEmpty() && lowerParsed.all { it in lowerExisting }) existing else parsed
+                } else parsed
+                repository.replaceTags(currentNoteId, finalTags)
+                // Create version AFTER hashtag update with description and meta
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = fullContent,
+                        changeDescription = context.getString(R.string.version_ai_added_hashtags)
+                    )
+                    val latest = repository.getVersionsForNoteList(currentNoteId).firstOrNull()
+                    latest?.let {
+                        repository.updateVersionAiMeta(
+                            versionId = it.id,
+                            provider = aiResult.provider.name,
+                            model = aiResult.model,
+                            durationMs = System.currentTimeMillis() - startedAt
+                        )
+                        repository.updateVersionAiHashtags(
+                            versionId = it.id,
+                            hashtags = parsed.joinToString(" ")
+                        )
+                    }
+                } catch (_: Exception) { }
+                // Update UI note info if opened
+                val currentInfo = _uiState.value.noteInfo
+                if (currentInfo != null) {
+                    _uiState.value = _uiState.value.copy(
+                        noteInfo = currentInfo.copy(hashtags = finalTags),
+                        isAiBusy = false
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(isAiBusy = false)
+                }
+                // Toast
+                toaster.toast(R.string.hashtags_generated)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
+    /** Open inline hashtag editor dialog from Note Info menu */
+    private fun editHashtags() {
+        viewModelScope.launch {
+            try {
+                val tags = repository.getTags(currentNoteId)
+                val text = if (tags.isEmpty()) "" else tags.joinToString(", ")
+                _uiState.value = _uiState.value.copy(
+                    showHashtagEditor = true,
+                    hashtagEditorText = text
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
+    /** Save hashtags from editor, robust parsing */
+    private fun saveHashtags(raw: String) {
+        viewModelScope.launch {
+            try {
+                val parsed = parseHashtagEditorText(raw)
+                repository.replaceTags(currentNoteId, parsed)
+                val currentInfo = _uiState.value.noteInfo
+                _uiState.value = _uiState.value.copy(
+                    showHashtagEditor = false,
+                    hashtagEditorText = "",
+                    noteInfo = currentInfo?.copy(hashtags = parsed)
+                )
+                toaster.toast(R.string.hashtags_saved)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: "")
+                )
+            }
+        }
+    }
+
+    /** Cancel hashtag editor without saving */
+    private fun cancelHashtagsEdit() {
+        _uiState.value = _uiState.value.copy(
+            showHashtagEditor = false,
+            hashtagEditorText = ""
+        )
+    }
+
+    /** Parses a single-line of hashtags produced by AI (e.g., "#tag1 #tag2"). Returns normalized list without '#'. */
+    private fun parseHashtagLine(line: String): List<String> {
+        if (line.isBlank()) return emptyList()
+        return line.split(' ', '\n', '\t', ',', ';')
+            .asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map { if (it.startsWith('#')) it.drop(1) else it }
+            .map { it.replace(' ', '_') }
+            .map { it.replace("__+".toRegex(), "_") }
+            .map { it.take(20) }
+            .distinctBy { it.lowercase() }
+            .take(5)
+            .toList()
+    }
+
+    /** Robust parse from human-edited text. */
+    private fun parseHashtagEditorText(text: String): List<String> {
+        if (text.isBlank()) return emptyList()
+        val raw = text.trim()
+        val hasDelimiters = raw.contains(',') || raw.contains(';') || raw.contains('\n')
+        if (!hasDelimiters) {
+            // No explicit separators. Decide by word count.
+            val words = raw.split(' ').map { it.trim() }.filter { it.isNotEmpty() }
+            val base = when (words.size) {
+                0 -> emptyList()
+                1 -> listOf(words[0].removePrefix("#").replace(' ', '_'))
+                2 -> listOf((words[0] + "_" + words[1]).removePrefix("#").replace(' ', '_'))
+                else -> words.map { it.removePrefix("#").replace(' ', '_') }
+            }
+            return base.map { it.capitalizeHashtag() }.map { it.take(20) }
+                .distinctBy { it.lowercase() }
+                .take(8)
+        }
+        // Has delimiters → split by , ; or newlines; each chunk may contain multiple words (keep underscores)
+        return raw.split(',', ';', '\n')
+            .asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map { chunk ->
+                val withoutHash = if (chunk.startsWith('#')) chunk.drop(1) else chunk
+                withoutHash.replace(' ', '_').capitalizeHashtag().take(20)
+            }
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase() }
+            .take(8)
+            .toList()
+    }
+
+    private fun String.capitalizeHashtag(): String {
+        if (isBlank()) return this
+        // Split by underscores, capitalize each word's first letter
+        return this.split('_')
+            .map { part ->
+                if (part.isEmpty()) part else part.replaceFirstChar { ch ->
+                    if (ch.isLowerCase()) ch.titlecase() else ch.toString()
+                }
+            }
+            .joinToString("_")
+    }
+
     override fun onCleared() {
         super.onCleared()
         autoSaveJob?.cancel()
@@ -1261,6 +1449,8 @@ data class NoteEditUiState(
     val exportContent: String? = null,
     val showNoteInfo: Boolean = false,
     val noteInfo: NoteInfo? = null,
+    val showHashtagEditor: Boolean = false,
+    val hashtagEditorText: String = "",
     val navigateToVersionHistory: Boolean = false,
     val versionHistoryNoteId: Long = 0L,
     val isFavorite: Boolean = false,
@@ -1289,7 +1479,8 @@ data class NoteInfo(
     val createdAt: Long,
     val updatedAt: Long,
     val characterCount: Int,
-    val wordCount: Int
+    val wordCount: Int,
+    val hashtags: List<String> = emptyList()
 )
 
 data class SearchMatch(
@@ -1319,4 +1510,8 @@ sealed class NoteEditEvent {
     object AiFixErrors : NoteEditEvent()
     data class AiFixErrorsInRange(val start: Int, val end: Int) : NoteEditEvent()
     object AiGenerateTitle : NoteEditEvent()
+    object AiGenerateHashtags : NoteEditEvent()
+    object EditHashtags : NoteEditEvent()
+    data class SaveHashtags(val raw: String) : NoteEditEvent()
+    object CancelHashtagsEdit : NoteEditEvent()
 } 

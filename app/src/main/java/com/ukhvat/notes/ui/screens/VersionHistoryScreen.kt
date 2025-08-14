@@ -514,13 +514,20 @@ fun VersionHistoryScreen(
             containerColor = colors.dialogBackground,
             shape = RoundedCornerShape(12.dp),
             title = {
-                Text(
-                    text = stringResource(R.string.ai_info_dialog_title),
-                    color = colors.dialogText
-                )
+                Text(text = stringResource(R.string.version_info), color = colors.dialogText)
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    val hashtags = version.aiHashtags
+                    if (!hashtags.isNullOrBlank()) {
+                        val tagsLine = hashtags.split(' ', ',', ';').filter { it.isNotBlank() }
+                            .joinToString(" ") { seg ->
+                                val t = seg.trim()
+                                if (t.startsWith("#")) t else "#" + t.replace(' ', '_')
+                            }
+                        Text(stringResource(R.string.hashtags_label) + ": " + tagsLine, color = colors.primary)
+                        Spacer(Modifier.height(6.dp))
+                    }
                     Text(stringResource(R.string.ai_info_provider, version.aiProvider ?: meta?.provider ?: "—"), color = colors.dialogText)
                     Spacer(Modifier.height(6.dp))
                     Text(stringResource(R.string.ai_info_model, version.aiModel ?: meta?.model ?: "—"), color = colors.dialogText)
@@ -826,8 +833,12 @@ private fun VersionPreviewDialog(
                                 onRename()
                             }
                         )
-                        // Info only for AI-corrected versions (after)
-                        if (version.changeDescription == stringResource(R.string.version_ai_after_fix)) {
+                        // Info for AI-related versions (fix/title/hashtags)
+                        if (
+                            version.changeDescription == stringResource(R.string.version_ai_after_fix) ||
+                            version.changeDescription == stringResource(R.string.version_ai_after_title) ||
+                            version.changeDescription == stringResource(R.string.version_ai_added_hashtags)
+                        ) {
                             DropdownMenuItem(
                                 text = {
                                     Text(

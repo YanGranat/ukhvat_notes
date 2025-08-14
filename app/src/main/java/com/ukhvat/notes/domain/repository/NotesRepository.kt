@@ -101,6 +101,7 @@ interface NotesRepository {
     suspend fun deleteVersion(versionId: Long): Boolean
     suspend fun updateVersionCustomName(versionId: Long, customName: String?)
     suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
+    suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?)
 
     // ============ Batch operations for versions ============
     
@@ -184,6 +185,12 @@ interface NotesRepository {
     suspend fun restoreFromArchive(id: Long)
     /** Удалить из архива (в корзину) */
     suspend fun deleteFromArchive(id: Long)
+
+    // ============ TAGS / HASHTAGS ============
+    /** Get normalized hashtags for a note (without leading #). */
+    suspend fun getTags(noteId: Long): List<String>
+    /** Replace hashtags for a note atomically. */
+    suspend fun replaceTags(noteId: Long, tags: List<String>)
 
     // ============ AI Settings ============
     suspend fun getOpenAiApiKey(): String?

@@ -6,12 +6,14 @@ import com.ukhvat.notes.data.datasource.SearchDataSourceImpl
 import com.ukhvat.notes.data.datasource.VersionDataSourceImpl
 import com.ukhvat.notes.data.datasource.TrashDataSourceImpl
 import com.ukhvat.notes.data.datasource.PreferencesDataSourceImpl
+import com.ukhvat.notes.data.datasource.TagDataSourceImpl
 import com.ukhvat.notes.domain.datasource.NoteDataSource
 import com.ukhvat.notes.domain.datasource.ArchiveDataSource
 import com.ukhvat.notes.domain.datasource.SearchDataSource
 import com.ukhvat.notes.domain.datasource.VersionDataSource
 import com.ukhvat.notes.domain.datasource.TrashDataSource
 import com.ukhvat.notes.domain.datasource.PreferencesDataSource
+import com.ukhvat.notes.domain.datasource.TagDataSource
 import org.koin.android.ext.koin.androidContext
 import okhttp3.OkHttpClient
 import org.koin.core.qualifier.named
@@ -96,6 +98,13 @@ val dataSourceModule = module {
         PreferencesDataSourceImpl(
             context = androidContext()
         ) 
+    }
+
+    // Tag DataSource
+    single<TagDataSource> {
+        TagDataSourceImpl(
+            tagDao = get()
+        )
     }
 
     // ============ AI DATASOURCE ============

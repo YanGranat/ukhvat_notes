@@ -37,7 +37,8 @@ data class NoteVersionEntity(
     val isForcedSave: Boolean = false,  // Была ли версия создана принудительным сохранением
     val aiProvider: String? = null,
     val aiModel: String? = null,
-    val aiDurationMs: Long? = null
+    val aiDurationMs: Long? = null,
+    val aiHashtags: String? = null
 )
 
 // Extension functions для конвертации
@@ -51,7 +52,8 @@ fun NoteVersionEntity.toDomain(): NoteVersion = NoteVersion(
     isForcedSave = isForcedSave,
     aiProvider = aiProvider,
     aiModel = aiModel,
-    aiDurationMs = aiDurationMs
+    aiDurationMs = aiDurationMs,
+    aiHashtags = aiHashtags
 )
 
 fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
@@ -64,7 +66,8 @@ fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
     isForcedSave = isForcedSave,
     aiProvider = aiProvider,
     aiModel = aiModel,
-    aiDurationMs = aiDurationMs
+    aiDurationMs = aiDurationMs,
+    aiHashtags = aiHashtags
 )
 
 

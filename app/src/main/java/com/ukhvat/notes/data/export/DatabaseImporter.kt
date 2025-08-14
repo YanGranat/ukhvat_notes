@@ -169,7 +169,8 @@ class DatabaseImporter(
                     val isForcedSave: Boolean,
                     val aiProvider: String?,
                     val aiModel: String?,
-                    val aiDurationMs: Long?
+                    val aiDurationMs: Long?,
+                    val aiHashtags: String?
                 )
                 val importedVersions = mutableListOf<ImportedVersion>()
                 val baseVersionSelect = StringBuilder()
@@ -177,6 +178,8 @@ class DatabaseImporter(
                 if (hasAiProvider) baseVersionSelect.append(", aiProvider") else baseVersionSelect.append(", NULL AS aiProvider")
                 if (hasAiModel) baseVersionSelect.append(", aiModel") else baseVersionSelect.append(", NULL AS aiModel")
                 if (hasAiDuration) baseVersionSelect.append(", aiDurationMs") else baseVersionSelect.append(", NULL AS aiDurationMs")
+                val hasAiHashtags = hasColumn("note_versions", "aiHashtags")
+                if (hasAiHashtags) baseVersionSelect.append(", aiHashtags") else baseVersionSelect.append(", NULL AS aiHashtags")
                 baseVersionSelect.append(" FROM note_versions ORDER BY timestamp ASC")
                 sourceDb.rawQuery(baseVersionSelect.toString(), null).use { c ->
                     while (c.moveToNext()) {
@@ -189,7 +192,27 @@ class DatabaseImporter(
                         val provider = if (!c.isNull(6)) c.getString(6) else null
                         val model = if (!c.isNull(7)) c.getString(7) else null
                         val dur = if (!c.isNull(8)) c.getLong(8) else null
-                        importedVersions.add(ImportedVersion(oldNoteId, vContent, ts, desc, custom, forced, provider, model, dur))
+                        val hashtags = if (!c.isNull(9)) c.getString(9) else null
+                        importedVersions.add(ImportedVersion(oldNoteId, vContent, ts, desc, custom, forced, provider, model, dur, hashtags))
+                    }
+                }
+
+                // Read tags if table exists (backward compatible)
+                fun hasTable(table: String): Boolean {
+                    return try {
+                        sourceDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", arrayOf(table)).use { c ->
+                            c.moveToFirst()
+                        }
+                    } catch (_: Exception) { false }
+                }
+                val importedTags = mutableListOf<Pair<Long, String>>()
+                if (hasTable("note_tags")) {
+                    sourceDb.rawQuery("SELECT noteId, tag FROM note_tags", null).use { c ->
+                        while (c.moveToNext()) {
+                            val oldId = c.getLong(0)
+                            val tag = c.getString(1) ?: ""
+                            if (tag.isNotBlank()) importedTags.add(oldId to tag)
+                        }
                     }
                 }
 
@@ -205,6 +228,7 @@ class DatabaseImporter(
                 val metadataDao = mainDatabase.noteMetadataDao()
                 val contentDao = mainDatabase.noteContentDao()
                 val versionDao = mainDatabase.noteVersionDao()
+                val tagDao = mainDatabase.noteTagDao()
 
                 importedCount = mainDatabase.withTransaction {
                     // Safety: normalize source-derived booleans from timestamps before insert
@@ -272,11 +296,23 @@ class DatabaseImporter(
                                 isForcedSave = v.isForcedSave,
                                 aiProvider = v.aiProvider,
                                 aiModel = v.aiModel,
-                                aiDurationMs = v.aiDurationMs
+                                aiDurationMs = v.aiDurationMs,
+                                aiHashtags = v.aiHashtags
                             )
                         }
                         if (versionEntities.isNotEmpty()) {
                             versionDao.insertVersionsBatch(versionEntities)
+                        }
+                    }
+
+                    // Insert note tags mapped to new IDs
+                    if (importedTags.isNotEmpty()) {
+                        val tagEntities = importedTags.mapNotNull { (oldId, tag) ->
+                            val newId = idMap[oldId] ?: return@mapNotNull null
+                            com.ukhvat.notes.data.database.NoteTagEntity(noteId = newId, tag = tag)
+                        }
+                        if (tagEntities.isNotEmpty()) {
+                            tagDao.insertTags(tagEntities)
                         }
                     }
 

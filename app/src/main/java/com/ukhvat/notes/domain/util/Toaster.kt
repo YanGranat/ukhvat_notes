@@ -13,13 +13,13 @@ import androidx.annotation.StringRes
  * - Async safety via suspend functions
  * - Conditional logic via toastIf() methods
  * - Internationalization via string resources
- * - Hilt DI integration for singleton instance
+ * - Koin DI integration for singleton instance
  * 
  * Usage in ViewModels:
  * ```kotlin
- * class SomeViewModel @Inject constructor(
+ * class SomeViewModel(
  *     private val toaster: Toaster
- * ) {
+ * ) { // injected via Koin
  *     private fun showSuccess() = viewModelScope.launch {
  *         toaster.toast(R.string.operation_success)
  *     }
@@ -27,7 +27,7 @@ import androidx.annotation.StringRes
  * ```
  * 
  * @see ToasterImpl Concrete implementation via Android Toast
- * @see ToasterModule Hilt module for dependency injection
+ * @see com.ukhvat.notes.di.KoinModule appModule for dependency injection
  */
 interface Toaster {
     suspend fun toast(@StringRes textRes: Int)

@@ -14,7 +14,8 @@ data class NoteVersion(
     val isForcedSave: Boolean = false,  // Whether version was created by forced save
     val aiProvider: String? = null,
     val aiModel: String? = null,
-    val aiDurationMs: Long? = null
+    val aiDurationMs: Long? = null,
+    val aiHashtags: String? = null
 ) {
     val formattedDate: String
         get() = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))

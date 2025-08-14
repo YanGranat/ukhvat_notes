@@ -83,6 +83,9 @@ interface VersionDataSource {
      * Does not change user-defined custom name.
      */
     suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
+
+    /** Attach AI-generated hashtags to the latest version (optional). */
+    suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?)
     
     // ============ VERSION CLEANUP ============
     

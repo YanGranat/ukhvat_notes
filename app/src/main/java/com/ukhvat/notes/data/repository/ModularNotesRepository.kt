@@ -38,7 +38,8 @@ class ModularNotesRepository(
     private val versionDataSource: VersionDataSource,
     private val trashDataSource: TrashDataSource,
     private val archiveDataSource: ArchiveDataSource,
-    private val preferencesDataSource: PreferencesDataSource
+    private val preferencesDataSource: PreferencesDataSource,
+    private val tagDataSource: com.ukhvat.notes.domain.datasource.TagDataSource
 ) : NotesRepository {
     
     // ============ VERSION CACHING OPTIMIZATION ============
@@ -218,6 +219,10 @@ class ModularNotesRepository(
     override suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?) {
         versionDataSource.updateVersionAiMeta(versionId, provider, model, durationMs)
     }
+
+    override suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?) {
+        versionDataSource.updateVersionAiHashtags(versionId, hashtags)
+    }
     
 
     
@@ -321,6 +326,15 @@ class ModularNotesRepository(
     override suspend fun deleteFromArchive(id: Long) {
         archiveDataSource.moveArchivedToTrash(id)
         searchDataSource.invalidateNoteInCache(id)
+    }
+
+    // ============ TAGS / HASHTAGS ============
+    override suspend fun getTags(noteId: Long): List<String> {
+        return tagDataSource.getTags(noteId)
+    }
+
+    override suspend fun replaceTags(noteId: Long, tags: List<String>) {
+        tagDataSource.replaceTags(noteId, tags)
     }
 
     // ============ SETTINGS ============

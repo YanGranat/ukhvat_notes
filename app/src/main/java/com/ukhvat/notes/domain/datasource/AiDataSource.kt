@@ -26,6 +26,12 @@ interface AiDataSource {
      * Returns the generated title text with provider and model used.
      */
     suspend fun generateTitle(note: String): AiResult
+
+    /**
+     * Generates relevant hashtags for the given note content.
+     * Returns a single-line string with space-separated hashtags (each starting with '#').
+     */
+    suspend fun generateHashtags(note: String, existing: List<String> = emptyList()): AiResult
 }
 
 

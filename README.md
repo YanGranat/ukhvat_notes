@@ -28,7 +28,7 @@
 - **🌍 Bilingual** - English and Russian interface
 - **⭐ Favorites** - Mark important notes and see them highlighted in the list
 - **🗄️ Archive (new)** - Archive/unarchive notes (hidden from main list and search), Archive screen with preview, per-note Restore/Delete (to Trash), and bulk actions (Restore all / Delete all)
-- **🤖 AI features (new)** - In-editor AI menu: "Fix errors" and "Generate title". If there is a selection, only the selected fragment is corrected; otherwise the entire note is corrected. "Generate title" sends the whole note and prepends a one-line title (up to 50 chars) followed by an empty line. Supports OpenAI/Gemini/Anthropic/OpenRouter; API keys in Settings → API Keys; strict provider/model usage (no fallbacks). 180s network timeouts. Version preview highlights per-character changes (green = added vs previous; red = removed vs next).
+- **🤖 AI features (new)** - In-editor AI menu: "Fix errors", "Generate title", and "Generate hashtags". If there is a selection, only the selected fragment is corrected; otherwise the entire note is corrected. "Generate title" sends the whole note and prepends a one-line title (up to 50 chars) followed by an empty line. "Generate hashtags" analyzes current hashtags (if any), keeps relevant ones, and adds new ones (1–5 total); hashtags are shown in Note Info and stored in a normalized table for future features. Supports OpenAI/Gemini/Anthropic/OpenRouter; API keys in Settings → API Keys; strict provider/model usage (no fallbacks). 180s network timeouts. Version preview highlights per-character changes (green = added vs previous; red = removed vs next).
 
 ## 📱 What it does
 
@@ -74,7 +74,7 @@ storePassword=********
 v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 **UI:** Jetpack Compose with Material Design 3  
 **Language:** 100% Kotlin  
-**DI:** Koin for lightweight dependency injection  
+**DI:** Koin for lightweight dependency injection (modules: `appModule`, `dataSourceModule`, `performanceModule`)  
 
 ### Key Technical Features
 - **Reactive data flow** with StateFlow and Compose

@@ -96,6 +96,7 @@
     <string name="ai_menu">ИИ</string>
     <string name="ai_fix_errors">Исправить ошибки</string>
     <string name="ai_generate_title">Сгенерировать заголовок</string>
+    <string name="ai_generate_hashtags">Сгенерировать хештеги</string>
     <string name="ai_fixed_short">Ошибки исправлены</string>
     <string name="ai_fixed_with_time">Ошибки исправлены (%1$s)</string>
     <string name="provider">Провайдер</string>
@@ -125,7 +126,8 @@
     <string name="version_ai_before_title">Генерация заголовка (до)</string>
     <string name="version_ai_after_title">Генерация заголовка (после)</string>
     <string name="version_info">Информация</string>
-    <string name="ai_info_dialog_title">Информация об исправлении</string>
+    <string name="version_ai_added_hashtags">Добавлены хештеги</string>
+    <string name="ai_info_dialog_title">Информация</string>
     <string name="ai_info_provider">Провайдер: %1$s</string>
     <string name="ai_info_model">Модель: %1$s</string>
     <string name="ai_info_duration">Время: %1$s</string>
@@ -262,6 +264,12 @@
     <string name="loading_triple_dots">Загрузка...</string>
     <string name="search_in_note_desc">Поиск по заметке</string>
     <string name="note_info_title">Информация о заметке</string>
+    <string name="hashtags_label">Хештеги</string>
+    <string name="hashtags_menu_item">Хештеги</string>
+    <string name="hashtags_edit_title">Хештеги</string>
+    <string name="hashtags_edit_hint">Перечислите хештеги через запятую или пробелы. Можно использовать #, пробелы будут заменены на подчёркивания.</string>
+    <string name="hashtags_generated">Хештеги сгенерированы</string>
+    <string name="hashtags_saved">Хештеги сохранены</string>
     <string name="delete_note_question">Удалить заметку?</string>
     <string name="cannot_undo">Это действие нельзя отменить</string>
     <string name="search_in_note_placeholder">Поиск по заметке...</string>

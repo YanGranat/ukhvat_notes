@@ -35,6 +35,12 @@ class VersionDataSourceImpl(
     override suspend fun createVersion(noteId: Long, content: String, customName: String?, isForcedSave: Boolean) {
         val version = createNoteVersion(noteId, content, customName, isForcedSave)
         versionDao.insertVersion(version.toEntity())
+        // Enforce retention policy: keep latest 100 non-forced versions; preserve all forced
+        try {
+            versionDao.cleanupNonForcedVersionsKeepLatest(noteId, 100)
+        } catch (_: Exception) {
+            // Best-effort cleanup; do not affect UX on failure
+        }
     }
     
     // ============ VERSION RETRIEVAL ============
@@ -70,6 +76,10 @@ class VersionDataSourceImpl(
 
     override suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?) {
         versionDao.updateVersionAiMeta(versionId, provider, model, durationMs)
+    }
+
+    override suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?) {
+        versionDao.updateVersionAiHashtags(versionId, hashtags)
     }
     
     // ============ VERSION CLEANUP ============

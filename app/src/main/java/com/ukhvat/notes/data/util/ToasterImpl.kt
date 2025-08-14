@@ -7,6 +7,7 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.Color
 import android.util.TypedValue
 import androidx.annotation.StringRes
+import android.view.Gravity
 import com.ukhvat.notes.domain.util.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -70,12 +71,13 @@ class ToasterImpl(
 
     private fun showCustomToast(message: String) {
         val density = context.resources.displayMetrics.density
-        val paddingH = (16 * density).toInt()
-        val paddingV = (10 * density).toInt()
-        val radius = 8 * density
+        val scaleFactor = 1.05f // ~5% bigger
+        val paddingH = (16 * density * scaleFactor).toInt()
+        val paddingV = (10 * density * scaleFactor).toInt()
+        val radius = 8 * density * scaleFactor
 
-        val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val bgColor = if (isNight) Color.parseColor("#424242") else Color.parseColor("#323232")
+        // Use dialog background dark color (#0F0F0F) as preferred dark tone across themes
+        val bgColor = Color.parseColor("#0F0F0F")
         val textColor = Color.WHITE
 
         val bgDrawable = GradientDrawable().apply {
@@ -86,7 +88,7 @@ class ToasterImpl(
         val tv = TextView(context).apply {
             text = message
             setTextColor(textColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f * scaleFactor)
             setPadding(paddingH, paddingV, paddingH, paddingV)
             background = bgDrawable
         }
@@ -94,6 +96,10 @@ class ToasterImpl(
         val toast = Toast(context)
         toast.duration = Toast.LENGTH_SHORT
         toast.view = tv
+        // Move a bit higher (by ~10dp) from typical bottom position (~48dp)
+        val baseYOffsetDp = 48
+        val yOffset = ((baseYOffsetDp + 10) * density).toInt()
+        toast.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, yOffset)
         toast.show()
     }
 }
