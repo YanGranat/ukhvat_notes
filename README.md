@@ -27,8 +27,11 @@
 - **🌓 Theme support** - Dark and light modes
 - **🌍 Bilingual** - English and Russian interface
 - **⭐ Favorites** - Mark important notes and see them highlighted in the list
-- **🗄️ Archive (new)** - Archive/unarchive notes (hidden from main list and search), Archive screen with preview, per-note Restore/Delete (to Trash), and bulk actions (Restore all / Delete all)
-- **🤖 AI features (new)** - In-editor AI menu: "Fix errors", "Generate title", and "Generate hashtags". If there is a selection, only the selected fragment is corrected; otherwise the entire note is corrected. "Generate title" sends the whole note and prepends a one-line title (up to 50 chars) followed by an empty line. "Generate hashtags" analyzes current hashtags (if any), keeps relevant ones, and adds new ones (1–5 total); hashtags are shown in Note Info and stored in a normalized table for future features. Supports OpenAI/Gemini/Anthropic/OpenRouter; API keys in Settings → API Keys; strict provider/model usage (no fallbacks). 180s network timeouts. Version preview highlights per-character changes (green = added vs previous; red = removed vs next).
+- **🗄️ Archive** - Archive notes to hide them from the main list and search. Manage them in a separate screen.
+- **🤖 AI Features (new)** - Intelligent tools to work with your text:
+    - **Fix Errors**: Corrects text using an LLM. Works on a selected fragment or the entire note.
+    - **Generate Title**: Creates a concise title (up to 50 characters) and inserts it at the top of the note.
+    - **Generate Hashtags**: Analyzes the note and suggests 1-5 relevant hashtags, preserving existing ones.
 
 ## 📱 What it does
 
@@ -81,7 +84,7 @@ v9→v10 adds Archive (isArchived, archivedAt, index) with migration
 - **Optimized database queries** - separate metadata/content tables
 - **Batch operations** for high-performance import/export
 - **Archive data flow** - new `ArchiveDataSource`, repository methods, and UI navigation
-- **AI integration** - OkHttp client; strict provider/model selection (no fallbacks); default models (gpt-5, gemini-2.5-flash, claude-3-7-sonnet-thinking) + extras (OpenAI: gpt-4.1-2025-04-14, o3-deep-research-2025-06-26; Gemini: gemini-2.5-flash-lite; OpenRouter: x-ai/grok-4, qwen/qwen3-coder); local API key storage; per-version AI metadata (provider/model/duration)
+- **AI integration** - Support for OpenAI, Gemini, Anthropic, and OpenRouter. API keys are stored locally.
 - **Adaptive text processing** with advanced search algorithms
 
 ## 📄 Export & Import

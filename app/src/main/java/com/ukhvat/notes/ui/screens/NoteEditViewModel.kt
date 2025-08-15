@@ -1198,17 +1198,21 @@ class NoteEditViewModel(
                             repository.permanentlyDeleteNote(currentNoteId)
                         }
                     } else {
-                        // FORCED SAVE of note with content
-                        val updatedNote = currentNote.copy(
-                            content = currentContent,  // Save current content
-                            updatedAt = System.currentTimeMillis(),
-                            isFavorite = _uiState.value.isFavorite
-                            // Title automatically recalculated in toMetadataEntityForSave()
-                        )
-                        repository.updateNote(updatedNote)
-                        
-                        // Check need for version creation on note exit
-                        checkAndCreateVersionOnExit()
+                        // Save only if actual content changed to avoid bumping note on open-close
+                        val contentChanged = currentNote.content != currentContent
+                        if (contentChanged) {
+                            val updatedNote = currentNote.copy(
+                                content = currentContent,
+                                updatedAt = System.currentTimeMillis(),
+                                isFavorite = _uiState.value.isFavorite
+                                // Title automatically recalculated in toMetadataEntityForSave()
+                            )
+                            repository.updateNote(updatedNote)
+                            
+                            // Check need for version creation on note exit
+                            checkAndCreateVersionOnExit()
+                        }
+                        // If content did not change: do nothing (favorite/tag changes handled separately)
                     }
                 } else {
                             // RACE CONDITION: Note hasn't been created in DB yet, but user already exited
