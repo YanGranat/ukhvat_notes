@@ -10,6 +10,7 @@ import com.ukhvat.notes.R
 import com.ukhvat.notes.domain.model.Note
 import com.ukhvat.notes.domain.repository.NotesRepository
 import com.ukhvat.notes.domain.util.Toaster
+import com.ukhvat.notes.domain.util.NotificationService
 import com.ukhvat.notes.ui.theme.UiConstants
 import com.ukhvat.notes.ui.theme.ThemePreference
 import com.ukhvat.notes.ui.theme.DialogState
@@ -87,7 +88,8 @@ class NotesListViewModel(
     private val exportManager: ExportManager,
     private val importManager: ImportManager,
     private val searchDataSource: SearchDataSource,
-    private val localeManager: com.ukhvat.notes.data.LocaleManager
+    private val localeManager: com.ukhvat.notes.data.LocaleManager,
+    private val notificationService: NotificationService
 ) : ViewModel() {
     
 
@@ -119,9 +121,12 @@ class NotesListViewModel(
         // Now loading happens only after ViewModel creation
         // which occurs asynchronously in OptimizedMainApp
         loadDataSimple()
-        
+
         // Load saved theme preference at startup
         loadThemeIfNeeded()
+
+        // Initialize quick note settings
+        initializeQuickNoteSettings()
     }
     
     /**
@@ -153,6 +158,7 @@ class NotesListViewModel(
     fun onEvent(event: NotesListEvent) {
         when (event) {
             is NotesListEvent.CreateNewNote -> createNewNote()
+            is NotesListEvent.CreateNewNoteWithText -> createNewNoteWithText(event.text)
             is NotesListEvent.LoadMoreNotes -> loadMoreNotes()
             is NotesListEvent.SearchQueryChanged -> updateSearchQuery(event.query)
             is NotesListEvent.ClearSearch -> clearSearch()
@@ -203,6 +209,9 @@ class NotesListViewModel(
             is NotesListEvent.ShowModelSelectionDialog -> showModelSelection()
             is NotesListEvent.DismissModelSelectionDialog -> dismissModelSelection()
             is NotesListEvent.SaveModelSelection -> saveModelSelection(event.provider, event.openAiModel, event.geminiModel, event.anthropicModel, event.openRouterModel)
+            is NotesListEvent.ShowQuickNoteSettingsDialog -> showQuickNoteSettings()
+            is NotesListEvent.DismissQuickNoteSettingsDialog -> dismissQuickNoteSettings()
+            is NotesListEvent.SetQuickNoteEnabled -> setQuickNoteEnabled(event.enabled)
         }
     }
 
@@ -366,7 +375,39 @@ class NotesListViewModel(
             }
         }
     }
-    
+
+    private fun createNewNoteWithText(text: String) {
+        // Use timestamp + offset for unique ID without conflicts
+        val newNoteId = System.currentTimeMillis() + 1000000000000L
+
+        // Instant navigation to note
+        _uiState.value = _uiState.value.copy(
+            navigationState = NavigationState.NavigateToNote(newNoteId)
+        )
+
+        // Create note in DB in background with predefined ID and clipboard text
+        pendingNoteCreationJob = viewModelScope.launch {
+            try {
+                // Check that coroutine was not cancelled
+                ensureActive()
+
+                val newNote = Note(
+                    id = newNoteId,
+                    content = text,
+                    createdAt = newNoteId,
+                    updatedAt = newNoteId
+                )
+
+                repository.insertNote(newNote)
+            } catch (e: Exception) {
+                // On creation error, show error to user (only if not cancelled)
+                if (isActive) {
+                    toaster.toast("Ошибка создания заметки: ${e.localizedMessage ?: ""}")
+                }
+            }
+        }
+    }
+
     fun cancelPendingNoteCreation() {
         pendingNoteCreationJob?.cancel()
         pendingNoteCreationJob = null
@@ -1037,6 +1078,49 @@ class NotesListViewModel(
         _uiState.value = _uiState.value.copy(dialogState = DialogState.None)
     }
 
+    private fun showQuickNoteSettings() {
+        _uiState.value = _uiState.value.copy(showQuickNoteSettingsDialog = true)
+    }
+
+    private fun dismissQuickNoteSettings() {
+        _uiState.value = _uiState.value.copy(showQuickNoteSettingsDialog = false)
+    }
+
+    private fun setQuickNoteEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                // Обновляем состояние UI
+                _uiState.value = _uiState.value.copy(isQuickNoteEnabled = enabled)
+
+                // Включаем/отключаем уведомления через NotificationService
+                notificationService.setQuickNoteEnabled(enabled)
+
+                if (enabled) {
+                    toaster.toast("Быстрое создание заметок включено")
+                } else {
+                    toaster.toast("Быстрое создание заметок отключено")
+                }
+
+            } catch (e: Exception) {
+                toaster.toast("Ошибка настройки быстрых заметок: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Инициализировать настройки быстрого создания заметок
+     */
+    private fun initializeQuickNoteSettings() {
+        viewModelScope.launch {
+            try {
+                val isEnabled = notificationService.isQuickNoteEnabled()
+                _uiState.value = _uiState.value.copy(isQuickNoteEnabled = isEnabled)
+            } catch (e: Exception) {
+                // Silent failure - UI will show default state
+            }
+        }
+    }
+
     private fun openApiKeys() {
         viewModelScope.launch {
             try {
@@ -1258,7 +1342,11 @@ data class NotesListUiState(
     val geminiModelDraft: String = "gemini-2.5-flash",
     val anthropicModelDraft: String = "claude-3-7-sonnet-thinking"
     ,
-    val openRouterModelDraft: String = "deepseek/deepseek-chat-v3-0324:free"
+    val openRouterModelDraft: String = "deepseek/deepseek-chat-v3-0324:free",
+
+    // Quick note settings
+    val isQuickNoteEnabled: Boolean = false,
+    val showQuickNoteSettingsDialog: Boolean = false
 ) {
     /**
      * Computed properties for backward compatibility
@@ -1300,6 +1388,7 @@ data class NotesListUiState(
 
 sealed class NotesListEvent {
     data object CreateNewNote : NotesListEvent()
+    data class CreateNewNoteWithText(val text: String) : NotesListEvent()
     data object LoadMoreNotes : NotesListEvent()
     data class SearchQueryChanged(val query: String) : NotesListEvent()
     data object ClearSearch : NotesListEvent()
@@ -1356,4 +1445,7 @@ sealed class NotesListEvent {
         val anthropicModel: String? = null,
         val openRouterModel: String? = null
     ) : NotesListEvent()
+    data object ShowQuickNoteSettingsDialog : NotesListEvent()
+    data object DismissQuickNoteSettingsDialog : NotesListEvent()
+    data class SetQuickNoteEnabled(val enabled: Boolean) : NotesListEvent()
 } 

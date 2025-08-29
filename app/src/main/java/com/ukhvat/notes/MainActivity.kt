@@ -1,5 +1,6 @@
 package com.ukhvat.notes
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -24,6 +25,7 @@ import androidx.navigation.navArgument
 // Removed Hilt imports for Koin migration
 import com.ukhvat.notes.ui.screens.NotesListViewModel
 import com.ukhvat.notes.ui.screens.NotesListScreen
+import com.ukhvat.notes.ui.screens.NotesListEvent
 import com.ukhvat.notes.ui.screens.NoteEditScreen
 import com.ukhvat.notes.ui.screens.VersionHistoryScreen
 import com.ukhvat.notes.ui.screens.TrashScreen
@@ -35,6 +37,7 @@ import com.ukhvat.notes.data.datasource.SearchResultInfo
 import com.ukhvat.notes.ui.theme.ThemedUkhvat
 import com.ukhvat.notes.ui.theme.ColorManager
 import com.ukhvat.notes.ui.theme.UkhvatTheme
+import com.ukhvat.notes.ui.theme.NavigationState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 
@@ -68,22 +71,55 @@ class MainActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Enable edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
+        // Handle intent for creating new note from notification
+        handleIntent(intent)
+
+        // Handle intent for creating new note with clipboard text
+        handleClipboardIntent(intent)
+
         setContent {
             // Get single ViewModel and pass it everywhere (migrated to Koin)
             val viewModel: NotesListViewModel = koinViewModel()
-            
+
             ThemedUkhvat(viewModel = viewModel) { isDarkTheme ->
                 // Make system panel updates reactive to theme changes
                 LaunchedEffect(isDarkTheme) {
                     updateSystemBars(isDarkTheme)
                 }
-                
+
                 MainNavigation(viewModel = viewModel)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle new intents when app is already running
+        handleIntent(intent)
+        handleClipboardIntent(intent)
+    }
+
+    /**
+     * Handle intent from notification tap to create new note
+     */
+    private fun handleIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra("create_new_note", false) == true) {
+            // This will be handled by the ViewModel in MainNavigation
+            // We just need to pass this information through the navigation
+        }
+    }
+
+    /**
+     * Handle intent from notification button to create new note with clipboard text
+     */
+    private fun handleClipboardIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra("create_new_note_with_text", false) == true) {
+            // This will be handled by the ViewModel in MainNavigation
+            // We just need to pass this information through the navigation
         }
     }
     
@@ -102,13 +138,71 @@ class MainActivity : AppCompatActivity() {
 fun MainNavigation(
     viewModel: NotesListViewModel // Accept ViewModel as parameter
 ) {
+    val navController = rememberNavController()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? MainActivity
+
+    // Check if we need to create a new note from notification
+    val shouldCreateNewNote = activity?.intent?.getBooleanExtra("create_new_note", false) ?: false
+    val shouldCreateNoteWithText = activity?.intent?.getBooleanExtra("create_new_note_with_text", false) ?: false
+
+    // Handle new note creation from notification
+    LaunchedEffect(shouldCreateNewNote) {
+        if (shouldCreateNewNote) {
+            // Create new note and navigate to it
+            viewModel.onEvent(NotesListEvent.CreateNewNote)
+            // Clear the intent flag to prevent repeated creation
+            activity?.intent?.removeExtra("create_new_note")
+        }
+    }
+
+    // Handle new note creation with clipboard text
+    LaunchedEffect(shouldCreateNoteWithText) {
+        if (shouldCreateNoteWithText) {
+            // Read clipboard text at runtime in foreground Activity
+            val clipboardManager = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = clipboardManager.primaryClip
+            val textToUse = if (clip != null && clip.itemCount > 0) {
+                val item = clip.getItemAt(0)
+                val coerced = item.coerceToText(context)
+                (coerced?.toString()?.trim()
+                    ?: item.text?.toString()?.trim()
+                    ?: item.htmlText?.replace(Regex("<[^>]*>"), "")?.trim()
+                    ?: item.uri?.toString()?.trim()
+                    ?: "").toString()
+            } else ""
+
+            if (textToUse.isNotEmpty()) {
+                viewModel.onEvent(NotesListEvent.CreateNewNoteWithText(textToUse))
+            } else {
+                viewModel.onEvent(NotesListEvent.CreateNewNote)
+            }
+
+            // Clear the intent flags to prevent repeated creation
+            activity?.intent?.removeExtra("create_new_note_with_text")
+        }
+    }
+
+    // Handle navigation state changes
+    val navigationState = viewModel.uiState.value.navigationState
+    LaunchedEffect(navigationState) {
+        when (navigationState) {
+            is NavigationState.NavigateToNote -> {
+                // Navigate to the note editing screen
+                navController.navigate("edit_note/${navigationState.noteId}")
+                // Reset navigation state
+                viewModel.onNavigationHandled()
+            }
+            else -> {
+                // Handle other navigation states if needed
+            }
+        }
+    }
                 UkhvatTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            val navController = rememberNavController()
-            
             NavHost(
                 navController = navController,
                 startDestination = "notes_list",

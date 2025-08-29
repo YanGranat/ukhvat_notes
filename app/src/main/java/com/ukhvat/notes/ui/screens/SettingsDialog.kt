@@ -23,6 +23,7 @@ import com.ukhvat.notes.ui.theme.rememberGlobalColors
 fun SettingsDialog(
     onApiKeysClick: () -> Unit,
     onModelSelectionClick: () -> Unit,
+    onQuickNoteClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val colors = rememberGlobalColors()
@@ -60,6 +61,20 @@ fun SettingsDialog(
                     border = BorderStroke(1.dp, Color(0xFF757575))
                 ) {
                     Text(stringResource(R.string.settings_model_selection))
+                }
+
+                Spacer(modifier = androidx.compose.ui.Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = onQuickNoteClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colors.dialogText,
+                        containerColor = Color.Transparent
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFF757575))
+                ) {
+                    Text(stringResource(R.string.settings_quick_note))
                 }
             }
         },

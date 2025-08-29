@@ -9,6 +9,8 @@ import com.ukhvat.notes.data.database.NoteVersionDao
 import com.ukhvat.notes.domain.repository.NotesRepository
 import com.ukhvat.notes.data.util.ToasterImpl
 import com.ukhvat.notes.domain.util.Toaster
+import com.ukhvat.notes.domain.util.NotificationService
+import com.ukhvat.notes.data.services.NotificationServiceImpl
 
 import com.ukhvat.notes.ui.screens.ExportManager
 import com.ukhvat.notes.ui.screens.ImportManager
@@ -85,6 +87,11 @@ val appModule = module {
     single<com.ukhvat.notes.data.LocaleManager> {
         com.ukhvat.notes.data.LocaleManager(androidContext())
     }
+
+    // Notification service for quick note creation from notification drawer
+    single<NotificationService> {
+        NotificationServiceImpl(androidContext(), get())
+    }
     
     // Export utilities (migrated from Hilt @Inject constructors)
     single<com.ukhvat.notes.data.export.MarkdownExporter> { 
@@ -138,15 +145,16 @@ val appModule = module {
         com.ukhvat.notes.ui.screens.NoteEditViewModel(get(), get(), androidContext(), get()) // NotesRepository + Toaster + Context + AiDataSource
     }
     
-    factory<com.ukhvat.notes.ui.screens.NotesListViewModel> { 
+    factory<com.ukhvat.notes.ui.screens.NotesListViewModel> {
         com.ukhvat.notes.ui.screens.NotesListViewModel(
             get(), // NotesRepository
-            get(), // Toaster  
+            get(), // Toaster
             androidContext(), // Context
             get(), // ExportManager
             get(), // ImportManager
             get(), // SearchDataSource - CRITICAL: preserves advanced search with LRU cache
-            get()  // LocaleManager - for language switching
+            get(), // LocaleManager - for language switching
+            get()  // NotificationService - for quick note creation
         )
     }
 }

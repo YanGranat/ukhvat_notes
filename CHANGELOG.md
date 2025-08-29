@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2 – Quick Note from Notification: Reliable Clipboard
+
+- Notification action "Создать с текстом": redesigned to read clipboard at action time in foreground `MainActivity` for Android 10+ reliability.
+- Removed embedding clipboard text into PendingIntent extras to avoid stale values and caching side-effects.
+- Eliminated BroadcastReceiver path for clipboard; simplified flow to single Activity-based handling.
+- Ensures correct, current clipboard content is used; creates empty note if clipboard is empty.
+- Minor refactors and stability improvements in notification code.
+
 ## 1.2.1 – Versioning reliability and backup rules
 
 - Versioning: guaranteed first-version on exit for new notes (trim ≥3), race safety.

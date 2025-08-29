@@ -9,6 +9,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import com.ukhvat.notes.data.database.AppDatabase
+import com.ukhvat.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +57,38 @@ class UkhvatApplication : Application(), KoinComponent {
         // Asynchronously "warm up" the database in background to eliminate
         // 50-125ms cold start delay when user opens notes list
         preloadDatabaseAsync()
+
+        // Initialize quick note notifications if enabled
+        initializeQuickNoteNotifications()
+    }
+
+    /**
+     * Получить доступ к репозиторию заметок
+     * Резервный метод на случай использования в будущем
+     */
+    fun getNotesRepository(): NotesRepository? {
+        return try {
+            get<NotesRepository>()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Инициализировать уведомления быстрого создания заметок
+     * Вызывается при запуске приложения, если функция включена
+     */
+    private fun initializeQuickNoteNotifications() {
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val notificationService = get<com.ukhvat.notes.domain.util.NotificationService>()
+                if (notificationService.isQuickNoteEnabled()) {
+                    notificationService.showQuickNoteNotification()
+                }
+            } catch (e: Exception) {
+                // Silent failure - notification initialization is not critical
+            }
+        }
     }
     
     /**

@@ -78,6 +78,7 @@
     <string name="about_title">Ухват</string>
     <string name="about_tagline">Простое, но мощное приложение для заметок</string>
     <string name="about_version">Версия: %1$s</string>
+    <string name="about_github">Посмотреть на GitHub</string>
     
     <!-- Language strings -->
     <string name="language">Язык</string>
@@ -362,6 +363,12 @@
     <string name="saved">Сохранено</string>
     <string name="settings_api_keys">API Keys</string>
     <string name="settings_model_selection">Выбор LLM моделей</string>
+    <string name="settings_quick_note">Быстрое создание заметок</string>
+    <string name="quick_note_enabled">Включено</string>
+    <string name="quick_note_disabled">Отключено</string>
+    <string name="quick_note_description">Показывать уведомление в шторке для быстрого создания заметок</string>
+    <string name="quick_note_created">Заметка создана через шторку уведомлений</string>
+    <string name="quick_note_permission_required">Требуется разрешение на уведомления</string>
     <string name="api_key_openai">OpenAI API Key</string>
     <string name="api_key_gemini">Google Gemini API Key</string>
     <string name="api_key_anthropic">Anthropic Claude API Key</string>

@@ -428,6 +428,7 @@ private fun NotesListContent(
         SettingsDialog(
             onApiKeysClick = { onEvent(NotesListEvent.ShowApiKeysDialog) },
             onModelSelectionClick = { onEvent(NotesListEvent.ShowModelSelectionDialog) },
+            onQuickNoteClick = { onEvent(NotesListEvent.ShowQuickNoteSettingsDialog) },
             onDismiss = { onEvent(NotesListEvent.DismissSettingsDialog) }
         )
     }
@@ -443,6 +444,17 @@ private fun NotesListContent(
                 onEvent(NotesListEvent.SaveApiKeys(openAi, gemini, anthropic, openRouter))
             },
             onDismiss = { onEvent(NotesListEvent.DismissApiKeysDialog) }
+        )
+    }
+
+    // Quick Note Settings Dialog
+    if (uiState.showQuickNoteSettingsDialog) {
+        QuickNoteSettingsDialog(
+            isEnabled = uiState.isQuickNoteEnabled,
+            onEnabledChange = { enabled ->
+                onEvent(NotesListEvent.SetQuickNoteEnabled(enabled))
+            },
+            onDismiss = { onEvent(NotesListEvent.DismissQuickNoteSettingsDialog) }
         )
     }
 

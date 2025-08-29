@@ -78,6 +78,7 @@
     <string name="about_title">Ukhvat</string>
     <string name="about_tagline">Simple outside, powerful inside</string>
     <string name="about_version">Version: %1$s</string>
+    <string name="about_github">View on GitHub</string>
     
     <!-- Language strings -->
     <string name="language">Language</string>
@@ -360,6 +361,12 @@
     <string name="saved">Saved</string>
     <string name="settings_api_keys">API Keys</string>
     <string name="settings_model_selection">LLM model selection</string>
+    <string name="settings_quick_note">Quick Note Creation</string>
+    <string name="quick_note_enabled">Enabled</string>
+    <string name="quick_note_disabled">Disabled</string>
+    <string name="quick_note_description">Show notification in drawer for quick note creation</string>
+    <string name="quick_note_created">Note created via notification drawer</string>
+    <string name="quick_note_permission_required">Notification permission required</string>
     <string name="api_key_openai">OpenAI API Key</string>
     <string name="api_key_gemini">Google Gemini API Key</string>
     <string name="api_key_anthropic">Anthropic Claude API Key</string>
