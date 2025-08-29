@@ -50,6 +50,7 @@ class NoteEditViewModel(
     private var currentNoteCreatedAt: Long = 0L  // Preserve original creation time for updates
     private var isSearchFromNavigation = false   // Flag to protect search from auto-reset
     private var wasSearchClearedByUser = false   // Flag to track user search reset
+    private var wasContentEditedSinceOpen = false // Track any user edits in this session
     
     // Prevent repeated search application
     /**
@@ -98,6 +99,7 @@ class NoteEditViewModel(
         if (currentNoteId != noteId) {
             wasSearchClearedByUser = false  // Reset search reset flag when changing note
             searchParamsProcessedForNoteId = -1L  // Reset processed parameters flag
+            wasContentEditedSinceOpen = false // Reset edit tracker for new note
         }
         
         currentNoteId = noteId
@@ -215,6 +217,9 @@ class NoteEditViewModel(
             isSearchFromNavigation = false
         }
         
+        // Mark that content was edited during this session
+        wasContentEditedSinceOpen = true
+
         // Don't try to save cursor position in ViewModel
         // TextController manages cursor position based on real state
         val validContent = TextFieldValue(
@@ -1171,8 +1176,8 @@ class NoteEditViewModel(
      * to list beginning, ensuring consistent UX behavior.
      */
     private fun handleNavigateBack() {
-        // Unified behavior - always to list beginning
-        val shouldScrollToTop = true
+        // Scroll to top if there were edits during this session; otherwise preserve position
+        var shouldScrollToTop = wasContentEditedSinceOpen
         
         viewModelScope.launch {
             try {
@@ -1197,6 +1202,8 @@ class NoteEditViewModel(
             // Logic: just empty note, no point cluttering trash
                             repository.permanentlyDeleteNote(currentNoteId)
                         }
+                        // The note disappears from the list; preserve scroll position
+                        shouldScrollToTop = false
                     } else {
                         // Save only if actual content changed to avoid bumping note on open-close
                         val contentChanged = currentNote.content != currentContent
@@ -1209,6 +1216,8 @@ class NoteEditViewModel(
                             )
                             repository.updateNote(updatedNote)
                         }
+                        // If content changed, note will move to top (updatedAt changed)
+                        shouldScrollToTop = shouldScrollToTop || contentChanged
                         // Always check versioning on exit to satisfy first-version-on-exit rule
                         // for new notes (>= 3 characters) even when there were no changes
                         // since the last autosave.
@@ -1228,6 +1237,8 @@ class NoteEditViewModel(
                         repository.insertNote(newNote)
                         // Ensure first version is created on exit for new notes (>= 3 characters)
                         checkAndCreateVersionOnExit()
+                        // New note appears at the top → scroll to top in the list
+                        shouldScrollToTop = true
                     }
                 }
                 _uiState.value = _uiState.value.copy(

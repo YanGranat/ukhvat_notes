@@ -1,6 +1,8 @@
 package com.ukhvat.notes.ui.components
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
@@ -23,6 +25,8 @@ import androidx.compose.material3.MaterialTheme
 import com.ukhvat.notes.ui.screens.SearchMatch
 import com.ukhvat.notes.ui.theme.rememberGlobalColors
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 /**
  * CLEAN TEXT EDITOR WITHOUT RACE CONDITIONS
@@ -86,21 +90,36 @@ fun BasicTextField2Editor(
         }
     }
 
-    // Adaptive autofocus system
-    // Autofocus with delay
+    // Faster autofocus: request focus immediately and explicitly show keyboard
+    val keyboardController = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) {
-
         // No autofocus in search mode - user is browsing, not editing
-        if (isSearchMode && searchQuery.isNotEmpty()) {
-            return@LaunchedEffect
-        }
-        
-        // Different delays to prevent race conditions:
-        // • New notes (40ms) - optimal delay between speed and stability
-        // • Existing notes (10ms) - fast autofocus for convenience
-        val focusDelay = 10L // Fast focus for all notes
-        delay(focusDelay)
+        if (isSearchMode && searchQuery.isNotEmpty()) return@LaunchedEffect
         focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
+    // Ensure the last visual line (cursor at end) stays above the keyboard on first open
+    // Trigger only when IME becomes visible and we are not in search mode
+    val density = LocalDensity.current
+    val imeBottomPx = WindowInsets.ime.getBottom(density)
+    var didImeAdjust by remember { mutableStateOf(false) }
+    LaunchedEffect(imeBottomPx, isSearchMode) {
+        if (isSearchMode) return@LaunchedEffect
+        if (imeBottomPx > 0 && !didImeAdjust) {
+            // If cursor is at the end or near it, scroll to bottom so last line is above IME
+            val selEnd = textController.textFieldState.selection.end
+            val totalLen = textController.textFieldState.text.length
+            if (totalLen == 0 || selEnd >= totalLen - 1) {
+                // Small delay to allow layout to include imePadding in measurements
+                delay(30)
+                scrollState.scrollTo(scrollState.maxValue)
+                didImeAdjust = true
+            }
+        }
+        if (imeBottomPx == 0) {
+            didImeAdjust = false
+        }
     }
 
             // Handle search matches 
