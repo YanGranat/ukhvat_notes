@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1 – Versioning reliability and backup rules
+
+- Versioning: guaranteed first-version on exit for new notes (trim ≥3), race safety.
+- Versioning: faster existence check (`hasAnyVersion`) to reduce I/O in UI.
+- Versioning: substitution-aware change detection in `shouldCreateVersion` (fallback when length equal).
+- Versioning cache: thread-safe Mutex + LRU cap (1000 entries).
+- Cleanup: preserve named versions (non-forced with non-empty `customName`).
+- Backup: exclude Room DB files from system backup/device transfer.
+
 ## 1.2.0 – Architecture, Performance, and AI Features
 
 A major update focused on architectural simplification, critical performance optimizations, and expanded AI capabilities.

@@ -2,4 +2,8 @@
 <full-backup-content>
     <!-- Exclude cache directory -->
     <exclude domain="cache" />
+    <!-- Exclude Room database files from backup/restore to avoid persisting notes across reinstall -->
+    <exclude domain="database" path="note_database" />
+    <exclude domain="database" path="note_database-shm" />
+    <exclude domain="database" path="note_database-wal" />
 </full-backup-content> 

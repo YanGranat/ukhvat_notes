@@ -32,6 +32,7 @@ class VersionDataSourceImpl(
     
     // ============ VERSION CREATION ============
     
+    @Transaction
     override suspend fun createVersion(noteId: Long, content: String, customName: String?, isForcedSave: Boolean) {
         val version = createNoteVersion(noteId, content, customName, isForcedSave)
         versionDao.insertVersion(version.toEntity())
@@ -61,6 +62,11 @@ class VersionDataSourceImpl(
     
     override suspend fun getLatestVersionForNote(noteId: Long): NoteVersion? {
         return versionDao.getLatestVersionForNote(noteId)?.toDomain()
+    }
+    
+    /** Fast existence check */
+    suspend fun hasAnyVersion(noteId: Long): Boolean {
+        return versionDao.hasAnyVersion(noteId)
     }
     
     // ============ VERSION OPERATIONS ============

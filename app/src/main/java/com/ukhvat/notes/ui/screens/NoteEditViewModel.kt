@@ -341,8 +341,8 @@ class NoteEditViewModel(
         val content = currentUiState.content.text
         val noteId = currentNoteId
         
-        // Check only for notes with content
-        if (content.isBlank()) {
+        // Check only for notes with content (ignoring whitespace-only)
+        if (content.trim().isBlank()) {
             return
         }
         
@@ -386,12 +386,12 @@ class NoteEditViewModel(
         }
         
         try {
-            // Check if note has versions (distinguish new from existing)
-            val hasVersions = repository.getVersionsForNoteList(noteId).isNotEmpty()
+            // Fast existence check instead of loading list
+            val hasVersions = repository.hasAnyVersion(noteId)
             
             if (!hasVersions) {
-                // New note: create version on exit only if >=3 characters
-                if (content.length >= 3) {
+                // New note: create version on exit only if >=3 non-whitespace characters
+                if (content.trim().length >= 3) {
                     repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation))
                 }
             } else {
@@ -1208,16 +1208,16 @@ class NoteEditViewModel(
                                 // Title automatically recalculated in toMetadataEntityForSave()
                             )
                             repository.updateNote(updatedNote)
-                            
-                            // Check need for version creation on note exit
-                            checkAndCreateVersionOnExit()
                         }
-                        // If content did not change: do nothing (favorite/tag changes handled separately)
+                        // Always check versioning on exit to satisfy first-version-on-exit rule
+                        // for new notes (>= 3 characters) even when there were no changes
+                        // since the last autosave.
+                        checkAndCreateVersionOnExit()
                     }
                 } else {
                             // RACE CONDITION: Note hasn't been created in DB yet, but user already exited
         // If content is empty - do nothing (background creation should be cancelled)
-        // If there's content - create note forcefully
+        // If there's content - create note forcefully and ensure version creation on exit
                     if (currentContent.isNotBlank()) {
                         val newNote = Note(
                             id = currentNoteId,
@@ -1226,6 +1226,8 @@ class NoteEditViewModel(
                             updatedAt = System.currentTimeMillis()
                         )
                         repository.insertNote(newNote)
+                        // Ensure first version is created on exit for new notes (>= 3 characters)
+                        checkAndCreateVersionOnExit()
                     }
                 }
                 _uiState.value = _uiState.value.copy(

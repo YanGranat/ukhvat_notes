@@ -16,8 +16,8 @@ android {
         applicationId = "com.ukhvat.notes"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.2.0"
+        versionCode = 13
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

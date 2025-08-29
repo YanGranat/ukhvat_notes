@@ -50,6 +50,12 @@ interface NoteVersionDao {
     
     @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatestVersionForNote(noteId: Long): NoteVersionEntity?
+
+    /**
+     * Fast existence check for versions of a note (avoids loading list).
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM note_versions WHERE noteId = :noteId LIMIT 1)")
+    suspend fun hasAnyVersion(noteId: Long): Boolean
     
     @Query("DELETE FROM note_versions WHERE id = :versionId")
     suspend fun deleteVersionById(versionId: Long)
@@ -84,6 +90,7 @@ interface NoteVersionDao {
         DELETE FROM note_versions
         WHERE noteId = :noteId
         AND isForcedSave = 0
+        AND (customName IS NULL OR TRIM(customName) = '')
         AND id NOT IN (
             SELECT id FROM note_versions
             WHERE noteId = :noteId

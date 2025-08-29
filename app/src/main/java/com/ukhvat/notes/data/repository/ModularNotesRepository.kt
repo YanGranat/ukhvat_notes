@@ -13,6 +13,8 @@ import com.ukhvat.notes.domain.repository.NotesRepository
 import com.ukhvat.notes.ui.theme.ThemePreference
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.math.abs
 
 /**
@@ -53,14 +55,19 @@ class ModularNotesRepository(
      * - Autosave performance improvement from 30-70ms to <10ms
      * - Maintains full versioning logic accuracy
      */
-    private val versionCache = mutableMapOf<Long, Pair<Long, String>>()
+    private val versionCacheMutex = Mutex()
+    private val versionCache = object : LinkedHashMap<Long, Pair<Long, String>>(MAX_VERSION_CACHE_SIZE + 1, 1.0f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Pair<Long, String>>?): Boolean {
+            return size > MAX_VERSION_CACHE_SIZE
+        }
+    }
     
     /**
      * Invalidates cached version info for a note
      * Called after version creation to ensure cache consistency
      */
-    private fun invalidateVersionCache(noteId: Long) {
-        versionCache.remove(noteId)
+    private suspend fun invalidateVersionCache(noteId: Long) {
+        versionCacheMutex.withLock { versionCache.remove(noteId) }
     }
     
     // ============ BASIC NOTE OPERATIONS ============
@@ -279,7 +286,7 @@ class ModularNotesRepository(
         trashDataSource.emptyTrash()
         searchDataSource.clearSearchCache()
         // Clear all version cache since multiple notes may be permanently deleted
-        versionCache.clear()
+        versionCacheMutex.withLock { versionCache.clear() }
     }
     
     override suspend fun autoCleanupTrash(daysOld: Int) {
@@ -412,7 +419,7 @@ class ModularNotesRepository(
      */
     override suspend fun shouldCreateVersion(noteId: Long, newContent: String): Boolean {
         // PERFORMANCE OPTIMIZATION: Try cache first to avoid DB query
-        val cachedVersion = versionCache[noteId]
+        val cachedVersion = versionCacheMutex.withLock { versionCache[noteId] }
         
         val (latestTimestamp, latestContent) = if (cachedVersion != null) {
             // Use cached data - no DB query needed
@@ -427,13 +434,28 @@ class ModularNotesRepository(
             
             // Cache the version info for future calls
             val versionData = latestVersion.timestamp to latestVersion.content
-            versionCache[noteId] = versionData
+            versionCacheMutex.withLock { versionCache[noteId] = versionData }
             versionData
         }
         
-        // Simple condition: changes greater than 140 characters
+        // Primary fast path: length delta
         val lengthDifference = abs(newContent.length - latestContent.length)
-        return lengthDifference > MIN_CHANGE_FOR_VERSION
+        if (lengthDifference > MIN_CHANGE_FOR_VERSION) return true
+
+        // Fallback: content change ratio to detect substitutions of same length
+        val changeRatio = calculateContentChangeRatio(latestContent, newContent)
+        val maxLength = maxOf(latestContent.length, newContent.length)
+        val changedCharsApprox = (changeRatio * maxLength).toInt()
+        return changedCharsApprox > MIN_CHANGE_FOR_VERSION
+    }
+
+    override suspend fun hasAnyVersion(noteId: Long): Boolean {
+        // Fast existence check via latest version query
+        return versionDataSource.getLatestVersionForNote(noteId) != null
+    }
+
+    companion object {
+        private const val MAX_VERSION_CACHE_SIZE: Int = 1000
     }
     
     /**
