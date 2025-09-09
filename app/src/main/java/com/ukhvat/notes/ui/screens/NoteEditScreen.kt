@@ -249,7 +249,7 @@ private fun NoteEditContent(
                         // Save button
                         IconButton(
                             onClick = {
-                                onEvent(NoteEditEvent.ForceSave)
+                                onEvent(NoteEditEvent.ForceSave())
                             },
                             modifier = Modifier.size(40.dp)
                         ) {

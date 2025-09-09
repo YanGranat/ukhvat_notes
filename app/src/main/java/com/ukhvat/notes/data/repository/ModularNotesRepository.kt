@@ -195,14 +195,14 @@ class ModularNotesRepository(
         return versionDataSource.getVersionById(versionId)
     }
     
-    override suspend fun createVersion(noteId: Long, content: String, changeDescription: String?) {
-        versionDataSource.createVersion(noteId, content, changeDescription)
+    override suspend fun createVersion(noteId: Long, content: String, changeDescription: String?, diffOpsJson: String?) {
+        versionDataSource.createVersion(noteId, content, changeDescription, isForcedSave = false, diffOpsJson = diffOpsJson)
         // Invalidate version cache after creating version
         invalidateVersionCache(noteId)
     }
     
-    override suspend fun createVersionForced(noteId: Long, content: String, changeDescription: String?) {
-        versionDataSource.createVersion(noteId, content, changeDescription, isForcedSave = true)
+    override suspend fun createVersionForced(noteId: Long, content: String, changeDescription: String?, diffOpsJson: String?) {
+        versionDataSource.createVersion(noteId, content, changeDescription, isForcedSave = true, diffOpsJson = diffOpsJson)
         noteDataSource.increaseMaxVersions(noteId)
         // Invalidate version cache after creating forced version
         invalidateVersionCache(noteId)

@@ -33,8 +33,8 @@ class VersionDataSourceImpl(
     // ============ VERSION CREATION ============
     
     @Transaction
-    override suspend fun createVersion(noteId: Long, content: String, customName: String?, isForcedSave: Boolean) {
-        val version = createNoteVersion(noteId, content, customName, isForcedSave)
+    override suspend fun createVersion(noteId: Long, content: String, customName: String?, isForcedSave: Boolean, diffOpsJson: String?) {
+        val version = createNoteVersion(noteId, content, customName, isForcedSave).copy(diffOpsJson = diffOpsJson)
         versionDao.insertVersion(version.toEntity())
         // Enforce retention policy: keep latest 100 non-forced versions; preserve all forced
         try {

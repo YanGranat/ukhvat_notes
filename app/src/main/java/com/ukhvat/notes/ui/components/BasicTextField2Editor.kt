@@ -85,6 +85,8 @@ fun BasicTextField2Editor(
         InputTransformation {
             // Notify ViewModel ONLY about user changes
             val newText = this.asCharSequence().toString()
+            // Build minimal diff window and record into DiffJournalStore via Note ID (extracted from controller?)
+            // We don't have noteId here, so journal recording is handled in ViewModel side.
             onValueChange(newText)
             // DON'T block changes - just notify ViewModel
         }

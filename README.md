@@ -20,7 +20,7 @@
 
 - **📝 Instant note creation** - Start writing immediately with auto-save
 - **🔍 Full-text search** - Find anything across all notes with highlighting  
-- **📚 Version history** - Track changes and restore previous versions
+- **📚 Version history** - Track changes and restore previous versions (clean preview in list; full view shows precise additions/removals)
 - **🗑️ Smart trash** - Soft delete with recovery options
 - **📤 Multiple export formats** - Markdown, ZIP archives, database backups
 - **📥 Flexible import** - From databases, archives, or folders

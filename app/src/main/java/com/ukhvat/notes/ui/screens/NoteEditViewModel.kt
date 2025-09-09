@@ -172,7 +172,7 @@ class NoteEditViewModel(
         when (event) {
             is NoteEditEvent.ContentChanged -> updateContent(event.content)
             is NoteEditEvent.SaveNote -> saveNote()
-            is NoteEditEvent.ForceSave -> forceSave()
+            is NoteEditEvent.ForceSave -> forceSave(event.diffOpsJson)
             is NoteEditEvent.DeleteNote -> deleteNote()
             is NoteEditEvent.ExportNote -> exportNote()
             is NoteEditEvent.ToggleFavorite -> toggleFavorite()
@@ -226,6 +226,27 @@ class NoteEditViewModel(
             text = content,
             selection = TextRange.Zero  // TextController will determine correct position
         )
+        // Record minimal journal diff for this note using previous text from UI state
+        try {
+            val old = _uiState.value.content.text
+            if (old != content) {
+                var start = 0
+                val minLen = kotlin.math.min(old.length, content.length)
+                while (start < minLen && old[start] == content[start]) start++
+                var endOld = old.length
+                var endNew = content.length
+                while (endOld > start && endNew > start && old[endOld - 1] == content[endNew - 1]) { endOld--; endNew-- }
+                val deleted = if (endOld > start) old.substring(start, endOld) else ""
+                val inserted = if (endNew > start) content.substring(start, endNew) else ""
+                if (deleted.isEmpty() && inserted.isNotEmpty()) {
+                    com.ukhvat.notes.domain.util.DiffJournalStore.recordInsert(currentNoteId, start, inserted)
+                } else if (inserted.isEmpty() && deleted.isNotEmpty()) {
+                    com.ukhvat.notes.domain.util.DiffJournalStore.recordDelete(currentNoteId, start, start + deleted.length)
+                } else if (deleted.isNotEmpty() && inserted.isNotEmpty()) {
+                    com.ukhvat.notes.domain.util.DiffJournalStore.recordReplace(currentNoteId, start, start + deleted.length, inserted)
+                }
+            }
+        } catch (_: Exception) { }
         
         _uiState.value = _uiState.value.copy(
             content = validContent,
@@ -362,10 +383,10 @@ class NoteEditViewModel(
                 
                 if (!hasVersions && content.length > 140) {
                     // New note: create version only if >140 characters
-                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation))
+                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation), diffOpsJson = null)
                 } else if (hasVersions) {
                     // Existing note: create version with autosave
-                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_autosave))
+                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_autosave), diffOpsJson = null)
                 }
             }
         } catch (e: Exception) {
@@ -397,13 +418,15 @@ class NoteEditViewModel(
             if (!hasVersions) {
                 // New note: create version on exit only if >=3 non-whitespace characters
                 if (content.trim().length >= 3) {
-                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation))
+                    val diffOps = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(noteId)
+                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation), diffOpsJson = diffOps)
                 }
             } else {
                 // Existing note: check changes >140 characters
                 val needsVersion = repository.shouldCreateVersion(noteId, content)
                 if (needsVersion) {
-                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_autosave))
+                    val diffOps = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(noteId)
+                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_autosave), diffOpsJson = diffOps)
                 }
             }
         } catch (e: Exception) {
@@ -455,7 +478,7 @@ class NoteEditViewModel(
      * 
      * @param retryCount Attempt counter for new notes (loop protection)
      */
-    private fun forceSave(retryCount: Int = 0) {
+    private fun forceSave(diffOpsJson: String? = null, retryCount: Int = 0) {
         // Note always has real ID (created immediately on navigation)
         
         viewModelScope.launch {
@@ -466,7 +489,8 @@ class NoteEditViewModel(
                 repository.createVersionForced(
                     noteId = currentNoteId,
                     content = contentToSave,
-                    changeDescription = context.resources.getString(R.string.version_force_save)
+                    changeDescription = context.resources.getString(R.string.version_force_save),
+                    diffOpsJson = diffOpsJson
                 )
                 
                 // Optimization: create Note object without extra DB query
@@ -791,10 +815,12 @@ class NoteEditViewModel(
                 val startedAt = System.currentTimeMillis()
                 // Create version BEFORE AI correction (non-blocking for UX)
                 try {
+                    val diffOpsBefore = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(currentNoteId)
                     repository.createVersion(
                         noteId = currentNoteId,
                         content = currentContent,
-                        changeDescription = context.resources.getString(R.string.version_ai_before_fix)
+                        changeDescription = context.resources.getString(R.string.version_ai_before_fix),
+                        diffOpsJson = diffOpsBefore
                     )
                 } catch (_: Exception) {
                     // Versioning errors should not affect user experience
@@ -809,10 +835,12 @@ class NoteEditViewModel(
                 )
                 // Create version AFTER AI correction (non-blocking for UX)
                 try {
+                    val diffOpsAfter = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(currentNoteId)
                     repository.createVersion(
                         noteId = currentNoteId,
                         content = corrected,
-                        changeDescription = context.resources.getString(R.string.version_ai_after_fix)
+                        changeDescription = context.resources.getString(R.string.version_ai_after_fix),
+                        diffOpsJson = diffOpsAfter
                     )
                     // Attach AI metadata to the latest version via dedicated fields (not customName)
                     try {
@@ -1511,7 +1539,7 @@ data class SearchMatch(
 sealed class NoteEditEvent {
     data class ContentChanged(val content: String) : NoteEditEvent()
     object SaveNote : NoteEditEvent()
-    object ForceSave : NoteEditEvent()
+    data class ForceSave(val diffOpsJson: String? = null) : NoteEditEvent()
     object DeleteNote : NoteEditEvent()
     object ExportNote : NoteEditEvent()
     object ToggleFavorite : NoteEditEvent()

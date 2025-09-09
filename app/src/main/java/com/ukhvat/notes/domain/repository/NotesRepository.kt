@@ -96,8 +96,8 @@ interface NotesRepository {
     suspend fun getVersionsForNoteList(noteId: Long): List<NoteVersion>
     /** Fast check: whether note has at least one version. */
     suspend fun hasAnyVersion(noteId: Long): Boolean
-    suspend fun createVersion(noteId: Long, content: String, changeDescription: String? = null)
-    suspend fun createVersionForced(noteId: Long, content: String, changeDescription: String? = null)
+    suspend fun createVersion(noteId: Long, content: String, changeDescription: String? = null, diffOpsJson: String? = null)
+    suspend fun createVersionForced(noteId: Long, content: String, changeDescription: String? = null, diffOpsJson: String? = null)
     suspend fun shouldCreateVersion(noteId: Long, newContent: String): Boolean
     suspend fun getVersionById(versionId: Long): NoteVersion?
     suspend fun deleteVersion(versionId: Long): Boolean

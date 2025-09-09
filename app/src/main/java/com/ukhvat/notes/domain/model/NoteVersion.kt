@@ -15,7 +15,8 @@ data class NoteVersion(
     val aiProvider: String? = null,
     val aiModel: String? = null,
     val aiDurationMs: Long? = null,
-    val aiHashtags: String? = null
+    val aiHashtags: String? = null,
+    val diffOpsJson: String? = null
 ) {
     val formattedDate: String
         get() = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))

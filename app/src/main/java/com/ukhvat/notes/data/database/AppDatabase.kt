@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NoteVersionEntity::class,   // Остается: история версий
         NoteTagEntity::class        // Новая: нормализованные хештеги
     ],
-    version = 12,  // v12: note_tags table + note_versions.aiHashtags
+    version = 13,  // v13: note_versions.diffOpsJson
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -70,6 +70,13 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // Add aiHashtags column to note_versions
                 db.execSQL("ALTER TABLE note_versions ADD COLUMN aiHashtags TEXT")
+            }
+        }
+
+        // Миграция 12->13: колонка diffOpsJson для хранения журнала правок в note_versions
+        val MIGRATION_12_13: Migration = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE note_versions ADD COLUMN diffOpsJson TEXT")
             }
         }
     }

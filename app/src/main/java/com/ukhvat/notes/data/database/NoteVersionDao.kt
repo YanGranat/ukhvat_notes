@@ -36,10 +36,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NoteVersionDao {
     
-    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC, id DESC")
     fun getVersionsForNote(noteId: Long): Flow<List<NoteVersionEntity>>
     
-    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC, id DESC")
     suspend fun getVersionsForNoteList(noteId: Long): List<NoteVersionEntity>
     
     @Insert
@@ -48,7 +48,7 @@ interface NoteVersionDao {
     @Query("SELECT * FROM note_versions WHERE id = :versionId")
     suspend fun getVersionById(versionId: Long): NoteVersionEntity?
     
-    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT * FROM note_versions WHERE noteId = :noteId ORDER BY timestamp DESC, id DESC LIMIT 1")
     suspend fun getLatestVersionForNote(noteId: Long): NoteVersionEntity?
 
     /**
@@ -127,7 +127,7 @@ interface NoteVersionDao {
     /**
      * Получить все версии синхронно (для импорта базы данных)
      */
-    @Query("SELECT * FROM note_versions ORDER BY timestamp DESC")
+    @Query("SELECT * FROM note_versions ORDER BY timestamp DESC, id DESC")
     fun getAllVersionsSync(): List<NoteVersionEntity>
     
     /**

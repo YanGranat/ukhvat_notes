@@ -30,7 +30,7 @@ interface VersionDataSource {
      * @param customName User-defined version name (optional)
      * @param isForcedSave Forced save flag (protects from auto-cleanup)
      */
-    suspend fun createVersion(noteId: Long, content: String, customName: String? = null, isForcedSave: Boolean = false)
+    suspend fun createVersion(noteId: Long, content: String, customName: String? = null, isForcedSave: Boolean = false, diffOpsJson: String? = null)
     
     // ============ VERSION RETRIEVAL ============
     

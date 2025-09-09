@@ -38,7 +38,8 @@ data class NoteVersionEntity(
     val aiProvider: String? = null,
     val aiModel: String? = null,
     val aiDurationMs: Long? = null,
-    val aiHashtags: String? = null
+    val aiHashtags: String? = null,
+    val diffOpsJson: String? = null
 )
 
 // Extension functions для конвертации
@@ -53,7 +54,8 @@ fun NoteVersionEntity.toDomain(): NoteVersion = NoteVersion(
     aiProvider = aiProvider,
     aiModel = aiModel,
     aiDurationMs = aiDurationMs,
-    aiHashtags = aiHashtags
+    aiHashtags = aiHashtags,
+    diffOpsJson = diffOpsJson
 )
 
 fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
@@ -67,7 +69,8 @@ fun NoteVersion.toEntity(): NoteVersionEntity = NoteVersionEntity(
     aiProvider = aiProvider,
     aiModel = aiModel,
     aiDurationMs = aiDurationMs,
-    aiHashtags = aiHashtags
+    aiHashtags = aiHashtags,
+    diffOpsJson = diffOpsJson
 )
 
 
@@ -106,5 +109,7 @@ fun createNoteVersion(
     isForcedSave = isForcedSave,
     aiProvider = null,
     aiModel = null,
-    aiDurationMs = null
+    aiDurationMs = null,
+    aiHashtags = null,
+    diffOpsJson = null
 ) 

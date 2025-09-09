@@ -40,6 +40,9 @@ class TextController(
     private val _textValue = MutableStateFlow(TextFieldValue(initialText, initialSelection))
     val textValue: StateFlow<TextFieldValue> = _textValue.asStateFlow()
     
+    // Edit journal for building precise diffs between versions
+    fun snapshotAndClearEditJournal(): String? = null // Deprecated: use DiffJournalStore
+
     // Current cursor position (read-only)
     val currentCursorPosition: Int
         get() = textFieldState.selection.start

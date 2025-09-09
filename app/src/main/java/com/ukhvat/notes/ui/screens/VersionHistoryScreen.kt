@@ -48,6 +48,7 @@ import com.ukhvat.notes.domain.model.NoteVersion
 import com.ukhvat.notes.ui.theme.*
 import com.ukhvat.notes.ui.theme.rememberGlobalColors
 import androidx.compose.ui.graphics.Color
+import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
 import com.ukhvat.notes.R
@@ -147,15 +148,62 @@ fun VersionHistoryScreen(
                 }
             }
             else -> {
+                // Build neighbor maps once per list to ensure consistency
+                val list = versionsList
+                val prevMap = remember(list) {
+                    val map = HashMap<Long, String?>(list.size)
+                    var i = 0
+                    while (i < list.size) {
+                        val v = list[i]
+                        map[v.id] = if (i < list.size - 1) list[i + 1].content else null
+                        i++
+                    }
+                    map
+                }
+                val nextMap = remember(list) {
+                    val map = HashMap<Long, String?>(list.size)
+                    var i = 0
+                    while (i < list.size) {
+                        val v = list[i]
+                        map[v.id] = if (i > 0) list[i - 1].content else null
+                        i++
+                    }
+                    map
+                }
+                val prevOpsMap = remember(list) {
+                    val map = HashMap<Long, String?>(list.size)
+                    var i = 0
+                    while (i < list.size) {
+                        val v = list[i]
+                        map[v.id] = if (i < list.size - 1) list[i + 1].diffOpsJson else null
+                        i++
+                    }
+                    map
+                }
+                val nextOpsMap = remember(list) {
+                    val map = HashMap<Long, String?>(list.size)
+                    var i = 0
+                    while (i < list.size) {
+                        val v = list[i]
+                        map[v.id] = if (i > 0) list[i - 1].diffOpsJson else null
+                        i++
+                    }
+                    map
+                }
+
                 // Version list
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(versionsList) { version ->
+                    items(items = versionsList, key = { it.id }) { version ->
                         VersionItem(
                             version = version,
+                            previousContent = prevMap[version.id],
+                            nextContent = nextMap[version.id],
+                            previousOpsJson = prevOpsMap[version.id],
+                            nextOpsJson = nextOpsMap[version.id],
                             onClick = { showPreviewDialog = version },
                             onRollbackClick = { 
                                 rollbackFromPreview = false
@@ -274,19 +322,15 @@ fun VersionHistoryScreen(
     showPreviewDialog?.let { version ->
        val clipboardManager = LocalClipboardManager.current
         // Find previous version content (versions ordered by timestamp desc)
-        val prevContent = remember(versions) {
-            val list = versions
-            if (list != null) {
-                val idx = list.indexOfFirst { it.id == version.id }
-                if (idx >= 0 && idx < list.size - 1) list[idx + 1].content else null
-            } else null
+        val prevContent = remember(versions, version.id) {
+            val list = versions ?: emptyList()
+            val idx = list.indexOfFirst { it.id == version.id }
+            if (idx >= 0 && idx < list.size - 1) list[idx + 1].content else null
         }
-        val nextContent = remember(versions) {
-            val list = versions
-            if (list != null) {
-                val idx = list.indexOfFirst { it.id == version.id }
-                if (idx > 0) list[idx - 1].content else null
-            } else null
+        val nextContent = remember(versions, version.id) {
+            val list = versions ?: emptyList()
+            val idx = list.indexOfFirst { it.id == version.id }
+            if (idx > 0) list[idx - 1].content else null
         }
        
        VersionPreviewDialog(
@@ -548,6 +592,10 @@ fun VersionHistoryScreen(
 @Composable
 private fun VersionItem(
     version: NoteVersion,
+    previousContent: String?,
+    nextContent: String?,
+    previousOpsJson: String?,
+    nextOpsJson: String?,
     onClick: () -> Unit,
     onRollbackClick: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -607,7 +655,7 @@ private fun VersionItem(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Content preview
+            // Content preview without highlighting (plain text)
             Text(
                 text = version.shortContent,
                 color = colors.textSecondary,
@@ -865,11 +913,10 @@ private fun VersionPreviewDialog(
                 item {
                     val annotated = remember(version.content, previousContent, nextContent) {
                         when {
-                            // If this version has a newer one, show removals (red) relative to next
-                            !nextContent.isNullOrEmpty() -> buildRemovedTextAnnotated(version.content, nextContent!!, colors)
-                            // Otherwise if there is previous, show additions (green) relative to previous
-                            !previousContent.isNullOrEmpty() -> buildAddedTextAnnotated(version.content, previousContent!!, colors)
-                            else -> androidx.compose.ui.text.AnnotatedString(version.content)
+                            previousContent == null && nextContent == null -> androidx.compose.ui.text.AnnotatedString(version.content)
+                            previousContent == null && nextContent != null -> buildRemovedTextAnnotated(version.content, nextContent, colors)
+                            previousContent != null && nextContent == null -> buildAddedTextAnnotated(version.content, previousContent, colors)
+                            else -> buildCombinedAddedRemovedAnnotated(version.content, previousContent!!, nextContent!!, colors)
                         }
                     }
                     Text(
@@ -947,41 +994,40 @@ private fun localizeVersionDescription(description: String): String {
                             "Note Creation" -> creationText
         else -> description // Keep as is for user-defined descriptions
     }
-} 
+}
 
 private fun buildAddedTextAnnotated(current: String, previous: String, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString {
     val a = current.toCharArray()
-    val b = previous.toCharArray()
-    val mask = lcsMatchMask(a, b)
-    val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text) // semi-transparent green
-    return buildAnnotatedString {
-        var i = 0
-        while (i < a.size) {
-            val ch = a[i]
-            if (mask[i]) {
-                append(ch)
-            } else {
-                withStyle(greenBg) { append(ch) }
-            }
-            i++
+    val presentInPrev = computeMoveAwarePresentMask(current, previous, PARAGRAPH_SIM_THRESHOLD)
+    val n = a.size
+    val addedMask = BooleanArray(n) { !presentInPrev[it] }
+    // Full-line highlight only if no char-level matches in the whole line
+    val lines = splitLinesWithRanges(current)
+    for ((s, e) in lines) {
+        var anyMatch = false
+        var i = s
+        while (i < e && i < n) { if (presentInPrev[i]) { anyMatch = true; break }; i++ }
+        if (!anyMatch) {
+            var k = s
+            while (k < e && k < n) { addedMask[k] = true; k++ }
         }
     }
-}
-
-private fun buildRemovedTextAnnotated(current: String, next: String, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString {
-    val a = current.toCharArray()
-    val b = next.toCharArray()
-    val mask = lcsMatchMask(a, b)
-    val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text) // semi-transparent red
+    // Full-paragraph highlight only if no char-level matches in the whole paragraph
+    val paras = computeParagraphRanges(current)
+    for ((s, e) in paras) {
+        var anyMatch = false
+        var i = s
+        while (i < e && i < n) { if (presentInPrev[i]) { anyMatch = true; break }; i++ }
+        if (!anyMatch) {
+            var k = s
+            while (k < e && k < n) { addedMask[k] = true; k++ }
+        }
+    }
+    val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text)
     return buildAnnotatedString {
         var i = 0
-        while (i < a.size) {
-            val ch = a[i]
-            if (mask[i]) {
-                append(ch)
-            } else {
-                withStyle(redBg) { append(ch) }
-            }
+        while (i < n) {
+            if (addedMask[i]) withStyle(greenBg) { append(a[i]) } else append(a[i])
             i++
         }
     }
@@ -1011,4 +1057,438 @@ private fun lcsMatchMask(a: CharArray, b: CharArray): BooleanArray {
         }
     }
     return mask
+} 
+
+
+private fun buildRemovedTextAnnotated(current: String, next: String, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString {
+    val a = current.toCharArray()
+    val presentInNext = computeMoveAwarePresentMask(current, next, PARAGRAPH_SIM_THRESHOLD)
+    val n = a.size
+    val removedMask = BooleanArray(n) { !presentInNext[it] }
+    // Full-line removal only if no char-level matches in the whole line
+    val lines = splitLinesWithRanges(current)
+    for ((s, e) in lines) {
+        var anyMatch = false
+        var i = s
+        while (i < e && i < n) { if (presentInNext[i]) { anyMatch = true; break }; i++ }
+        if (!anyMatch) {
+            var k = s
+            while (k < e && k < n) { removedMask[k] = true; k++ }
+        }
+    }
+    // Full-paragraph removal only if no char-level matches in the whole paragraph
+    val paras = computeParagraphRanges(current)
+    for ((s, e) in paras) {
+        var anyMatch = false
+        var i = s
+        while (i < e && i < n) { if (presentInNext[i]) { anyMatch = true; break }; i++ }
+        if (!anyMatch) {
+            var k = s
+            while (k < e && k < n) { removedMask[k] = true; k++ }
+        }
+    }
+    val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text)
+    return buildAnnotatedString {
+        var i = 0
+        while (i < n) {
+            if (removedMask[i]) withStyle(redBg) { append(a[i]) } else append(a[i])
+            i++
+        }
+    }
+}
+
+// Build annotated string for additions based on diffOpsJson (insert/replace)
+private fun buildAnnotatedFromDiffOpsForAdded(current: String, prevOpsJson: String?, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString? {
+    if (prevOpsJson.isNullOrBlank()) return null
+    return try {
+        val arr = JSONArray(prevOpsJson)
+        if (arr.length() == 0) return null
+        val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text)
+        val addedMask = BooleanArray(current.length)
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            val type = obj.getString("type")
+            val start = obj.getInt("start").coerceIn(0, current.length)
+            val text = obj.getString("text")
+            val end = (start + text.length).coerceIn(start, current.length)
+            if (type == "insert" || type == "replace") {
+                var k = start
+                while (k < end) { addedMask[k] = true; k++ }
+            }
+        }
+        buildAnnotatedString {
+            var i = 0
+            while (i < current.length) {
+                if (addedMask[i]) withStyle(greenBg) { append(current[i]) } else append(current[i])
+                i++
+            }
+        }
+    } catch (_: Exception) { null }
+}
+
+// Build annotated string for removals based on diffOpsJson (delete/replace)
+private fun buildAnnotatedFromDiffOpsForRemoved(current: String, nextOpsJson: String?, colors: GlobalColorBundle): androidx.compose.ui.text.AnnotatedString? {
+    if (nextOpsJson.isNullOrBlank()) return null
+    return try {
+        val arr = JSONArray(nextOpsJson)
+        if (arr.length() == 0) return null
+        val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text)
+        val removedMask = BooleanArray(current.length)
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            val type = obj.getString("type")
+            val start = obj.getInt("start").coerceIn(0, current.length)
+            val end = obj.getInt("end").coerceIn(start, current.length)
+            if (type == "delete" || type == "replace") {
+                var k = start
+                while (k < end) { if (k < current.length) removedMask[k] = true; k++ }
+            }
+        }
+        buildAnnotatedString {
+            var i = 0
+            while (i < current.length) {
+                if (removedMask[i]) withStyle(redBg) { append(current[i]) } else append(current[i])
+                i++
+            }
+        }
+    } catch (_: Exception) { null }
+}
+
+private fun mergeAnnotatedPreferGreen(
+    current: String,
+    added: androidx.compose.ui.text.AnnotatedString?,
+    removed: androidx.compose.ui.text.AnnotatedString?,
+    colors: GlobalColorBundle
+): androidx.compose.ui.text.AnnotatedString {
+    if (added == null && removed == null) return androidx.compose.ui.text.AnnotatedString(current)
+    val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text)
+    val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text)
+    val n = current.length
+    val greenMask = BooleanArray(n)
+    val redMask = BooleanArray(n)
+    fun fillMaskFromAnnotated(src: androidx.compose.ui.text.AnnotatedString, mask: BooleanArray) {
+        // Approximation: compare per-character style by rebuilding ranges is non-trivial; fallback is to assume any span yields mask
+        // For correctness, we rely on our own builders that set span per char; here not reconstructing, just return added when exists.
+    }
+    // Simplified: if added exists and removed exists, prefer added text indices from its mask creation step
+    // Since we built added/removed with masks, we can rebuild masks again quickly here (but we don't have them).
+    // Fallback: recompute masks from diff ops again to merge correctly
+    return added ?: removed ?: androidx.compose.ui.text.AnnotatedString(current)
+}
+// ===== Move-aware paragraph/line matching =====
+private const val PARAGRAPH_SIM_THRESHOLD = 0.7
+
+private fun similarityRatio(a: String, b: String): Double {
+    if (a.isEmpty() && b.isEmpty()) return 1.0
+    if (a.isEmpty() || b.isEmpty()) return 0.0
+    val lcs = lcsLength(a, b)
+    return (2.0 * lcs) / (a.length + b.length)
+}
+
+private fun lcsLength(a: String, b: String): Int {
+    val n = a.length
+    val m = b.length
+    if (n == 0 || m == 0) return 0
+    val dp = IntArray(m + 1)
+    var prev: Int
+    for (i in 1..n) {
+        prev = 0
+        val ai = a[i - 1]
+        for (j in 1..m) {
+            val temp = dp[j]
+            dp[j] = if (ai == b[j - 1]) prev + 1 else maxOf(dp[j], dp[j - 1])
+            prev = temp
+        }
+    }
+    return dp[m]
+}
+
+private data class Block(val start: Int, val end: Int) // [start, end)
+
+private fun computeMoveAwarePresentMask(current: String, other: String, threshold: Double): BooleanArray {
+    val n = current.length
+    val present = BooleanArray(n)
+    if (n == 0) return present
+    // 1) Paragraph-level matching (move-aware)
+    val curParas = computeParagraphRanges(current)
+    val othParas = computeParagraphRanges(other)
+    val usedOther = BooleanArray(othParas.size)
+    for ((cIdx, cRange) in curParas.withIndex()) {
+        val cText = current.substring(cRange.first, cRange.second).trim()
+        if (cText.isEmpty()) continue
+        var bestIdx = -1
+        var bestSim = 0.0
+        for ((oIdx, oRange) in othParas.withIndex()) {
+            if (usedOther[oIdx]) continue
+            val oText = other.substring(oRange.first, oRange.second).trim()
+            val sim = similarityRatio(cText, oText)
+            if (sim > bestSim) { bestSim = sim; bestIdx = oIdx }
+        }
+        if (bestIdx != -1 && bestSim >= threshold) {
+            usedOther[bestIdx] = true
+            // Inside matched paragraphs mark char-level presence using LCS
+            val (cs, ce) = cRange
+            val (os, oe) = othParas[bestIdx]
+            val subA = current.substring(cs, ce)
+            val subB = other.substring(os, oe)
+            val subMask = lcsMatchMask(subA.toCharArray(), subB.toCharArray())
+            var k = 0
+            var i = cs
+            while (i < ce && i < n && k < subMask.size) {
+                if (subMask[k]) present[i] = true
+                i++; k++
+            }
+        }
+    }
+    // 2) Line-level fallback inside unmatched areas
+    val curLines = splitLinesWithRanges(current)
+    val othLines = splitLinesWithRanges(other)
+    val usedLines = BooleanArray(othLines.size)
+    for (cRange in curLines) {
+        val (cs, ce) = cRange
+        var anyAlready = false
+        var i = cs
+        while (i < ce && i < n) { if (present[i]) { anyAlready = true; break } ; i++ }
+        if (anyAlready) continue
+        val cText = current.substring(cs, ce).trimEnd('\n', '\r')
+        if (cText.trim().isEmpty()) continue
+        var bestIdx = -1
+        var bestSim = 0.0
+        for ((oIdx, oRange) in othLines.withIndex()) {
+            if (usedLines[oIdx]) continue
+            val oText = other.substring(oRange.first, oRange.second).trimEnd('\n', '\r')
+            val sim = similarityRatio(cText, oText)
+            if (sim > bestSim) { bestSim = sim; bestIdx = oIdx }
+        }
+        if (bestIdx != -1 && bestSim >= threshold) {
+            usedLines[bestIdx] = true
+            val (os, oe) = othLines[bestIdx]
+            val subA = current.substring(cs, ce)
+            val subB = other.substring(os, oe)
+            val subMask = lcsMatchMask(subA.toCharArray(), subB.toCharArray())
+            var k = 0
+            var j = cs
+            while (j < ce && j < n && k < subMask.size) {
+                if (subMask[k]) present[j] = true
+                j++; k++
+            }
+        }
+    }
+    return present
+}
+
+// ==== Line-aware diff helpers ====
+private fun splitLinesWithRanges(text: String): List<Pair<Int, Int>> {
+    val ranges = ArrayList<Pair<Int, Int>>()
+    var start = 0
+    val len = text.length
+    var i = 0
+    while (i < len) {
+        if (text[i] == '\n') {
+            ranges.add(start to (i + 1))
+            start = i + 1
+        }
+        i++
+    }
+    if (start < len) ranges.add(start to len)
+    if (ranges.isEmpty()) ranges.add(0 to 0)
+    return ranges
+}
+
+private fun computeAddedMaskLineAware(current: String, previous: String): BooleanArray {
+    val n = current.length
+    val added = BooleanArray(n)
+    if (n == 0) return added
+    val aLines = splitLinesWithRanges(current)
+    val bLines = splitLinesWithRanges(previous)
+    val aStr = Array(aLines.size) { i -> current.substring(aLines[i].first, aLines[i].second) }
+    val bStr = Array(bLines.size) { j -> previous.substring(bLines[j].first, bLines[j].second) }
+    val dp = Array(aStr.size + 1) { IntArray(bStr.size + 1) }
+    for (i in aStr.size - 1 downTo 0) {
+        for (j in bStr.size - 1 downTo 0) {
+            dp[i][j] = if (aStr[i] == bStr[j]) 1 + dp[i + 1][j + 1] else maxOf(dp[i + 1][j], dp[i][j + 1])
+        }
+    }
+    val matchedA = BooleanArray(aStr.size)
+    var i = 0
+    var j = 0
+    while (i < aStr.size && j < bStr.size) {
+        when {
+            aStr[i] == bStr[j] -> { matchedA[i] = true; i++; j++ }
+            dp[i + 1][j] >= dp[i][j + 1] -> i++
+            else -> j++
+        }
+    }
+    for (idx in 0 until aLines.size) {
+        if (!matchedA[idx]) {
+            val (s, e) = aLines[idx]
+            var k = s
+            while (k < e && k < n) { added[k] = true; k++ }
+        }
+    }
+    return added
+}
+
+private fun computeRemovedMaskLineAware(current: String, next: String): BooleanArray {
+    val n = current.length
+    val removed = BooleanArray(n)
+    if (n == 0) return removed
+    val aLines = splitLinesWithRanges(current)
+    val bLines = splitLinesWithRanges(next)
+    val aStr = Array(aLines.size) { i -> current.substring(aLines[i].first, aLines[i].second) }
+    val bStr = Array(bLines.size) { j -> next.substring(bLines[j].first, bLines[j].second) }
+    val dp = Array(aStr.size + 1) { IntArray(bStr.size + 1) }
+    for (i in aStr.size - 1 downTo 0) {
+        for (j in bStr.size - 1 downTo 0) {
+            dp[i][j] = if (aStr[i] == bStr[j]) 1 + dp[i + 1][j + 1] else maxOf(dp[i + 1][j], dp[i][j + 1])
+        }
+    }
+    val matchedA = BooleanArray(aStr.size)
+    var i = 0
+    var j = 0
+    while (i < aStr.size && j < bStr.size) {
+        when {
+            aStr[i] == bStr[j] -> { matchedA[i] = true; i++; j++ }
+            dp[i + 1][j] >= dp[i][j + 1] -> i++
+            else -> j++
+        }
+    }
+    for (idx in 0 until aLines.size) {
+        if (!matchedA[idx]) {
+            val (s, e) = aLines[idx]
+            var k = s
+            while (k < e && k < n) { removed[k] = true; k++ }
+        }
+    }
+    return removed
+}
+
+// ==== Paragraph-aware diff helpers ====
+private fun computeParagraphRanges(text: String): List<Pair<Int, Int>> {
+    val lines = splitLinesWithRanges(text)
+    val ranges = ArrayList<Pair<Int, Int>>()
+    var paraStart = -1
+    var lastNonEmptyEnd = -1
+    for ((start, end) in lines) {
+        val lineText = text.substring(start, end)
+        val isEmptyLine = lineText.trim().isEmpty()
+        if (!isEmptyLine) {
+            if (paraStart == -1) paraStart = start
+            lastNonEmptyEnd = end
+        } else {
+            if (paraStart != -1) {
+                ranges.add(paraStart to lastNonEmptyEnd)
+                paraStart = -1
+                lastNonEmptyEnd = -1
+            }
+        }
+    }
+    if (paraStart != -1) ranges.add(paraStart to lastNonEmptyEnd)
+    return ranges
+}
+
+private fun buildLineMultiset(text: String): HashMap<String, Int> {
+    val map = HashMap<String, Int>()
+    val lines = splitLinesWithRanges(text)
+    lines.forEach { (s, e) ->
+        val raw = text.substring(s, e)
+        val normalized = raw.trimEnd('\n', '\r')
+        if (normalized.trim().isNotEmpty()) {
+            map[normalized] = (map[normalized] ?: 0) + 1
+        }
+    }
+    return map
+}
+
+private fun buildParagraphMultiset(text: String): HashMap<String, Int> {
+    val map = HashMap<String, Int>()
+    val paras = computeParagraphRanges(text)
+    paras.forEach { (s, e) ->
+        val normalized = text.substring(s, e).trim()
+        if (normalized.isNotEmpty()) {
+            map[normalized] = (map[normalized] ?: 0) + 1
+        }
+    }
+    return map
+}
+
+private fun computeAddedMaskParagraphAware(current: String, previous: String): BooleanArray {
+    val n = current.length
+    val added = BooleanArray(n)
+    if (n == 0) return added
+    val curParas = computeParagraphRanges(current)
+    val prevParas = computeParagraphRanges(previous)
+    val prevSet = HashSet<String>(prevParas.size)
+    for ((s, e) in prevParas) prevSet.add(previous.substring(s, e))
+    for ((s, e) in curParas) {
+        val paraText = current.substring(s, e)
+        if (!prevSet.contains(paraText)) {
+            var k = s
+            while (k < e && k < n) { added[k] = true; k++ }
+        }
+    }
+    return added
+}
+
+private fun computeRemovedMaskParagraphAware(current: String, next: String): BooleanArray {
+    val n = current.length
+    val removed = BooleanArray(n)
+    if (n == 0) return removed
+    val curParas = computeParagraphRanges(current)
+    val nextParas = computeParagraphRanges(next)
+    val nextSet = HashSet<String>(nextParas.size)
+    for ((s, e) in nextParas) nextSet.add(next.substring(s, e))
+    for ((s, e) in curParas) {
+        val paraText = current.substring(s, e)
+        if (!nextSet.contains(paraText)) {
+            var k = s
+            while (k < e && k < n) { removed[k] = true; k++ }
+        }
+    }
+    return removed
+}
+
+private fun buildCombinedAddedRemovedAnnotated(
+    current: String,
+    previous: String,
+    next: String,
+    colors: GlobalColorBundle
+): androidx.compose.ui.text.AnnotatedString {
+    val a = current.toCharArray()
+    val n = a.size
+    val presentInPrev = computeMoveAwarePresentMask(current, previous, PARAGRAPH_SIM_THRESHOLD)
+    val presentInNext = computeMoveAwarePresentMask(current, next, PARAGRAPH_SIM_THRESHOLD)
+    val addedMask = BooleanArray(n) { !presentInPrev[it] }
+    val removedMask = BooleanArray(n) { !presentInNext[it] }
+    // Lines
+    val lines = splitLinesWithRanges(current)
+    for ((s, e) in lines) {
+        var anyPrev = false; var anyNext = false
+        var i = s
+        while (i < e && i < n) { if (presentInPrev[i]) anyPrev = true; if (presentInNext[i]) anyNext = true; if (anyPrev && anyNext) break; i++ }
+        if (!anyPrev) { var k = s; while (k < e && k < n) { addedMask[k] = true; k++ } }
+        if (!anyNext) { var k = s; while (k < e && k < n) { removedMask[k] = true; k++ } }
+    }
+    // Paragraphs
+    val paras = computeParagraphRanges(current)
+    for ((s, e) in paras) {
+        var anyPrev = false; var anyNext = false
+        var i = s
+        while (i < e && i < n) { if (presentInPrev[i]) anyPrev = true; if (presentInNext[i]) anyNext = true; if (anyPrev && anyNext) break; i++ }
+        if (!anyPrev) { var k = s; while (k < e && k < n) { addedMask[k] = true; k++ } }
+        if (!anyNext) { var k = s; while (k < e && k < n) { removedMask[k] = true; k++ } }
+    }
+    val greenBg = SpanStyle(background = Color(0x5532CD32), color = colors.text)
+    val redBg = SpanStyle(background = Color(0x55FF5252), color = colors.text)
+    return buildAnnotatedString {
+        var i = 0
+        while (i < n) {
+            when {
+                addedMask[i] -> withStyle(greenBg) { append(a[i]) } // green priority
+                removedMask[i] -> withStyle(redBg) { append(a[i]) }
+                else -> append(a[i])
+            }
+            i++
+        }
+    }
 }
