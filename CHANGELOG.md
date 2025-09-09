@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3 – Versioning settings and fixes
+
+- Added versioning settings (interval, min chars, limit), info dialog, and minor UI tweaks.
+- Stability fixes for diff highlighting and resource strings.
+
 ## 1.2.2 – Quick Note from Notification: Reliable Clipboard
 
 - Notification action "Создать с текстом": redesigned to read clipboard at action time in foreground `MainActivity` for Android 10+ reliability.

@@ -352,8 +352,13 @@ class NoteEditViewModel(
         versionCheckJob?.cancel()
         versionCheckJob = viewModelScope.launch {
             while (true) {
-                delay(VERSION_CHECK_INTERVAL_MS) // 1 minute
-                checkAndCreateVersionOnTimer()
+                // Dynamic enable + interval from repository preferences
+                val autoEnabled = try { repository.getVersioningAutoEnabled() } catch (_: Exception) { true }
+                val interval = try { repository.getVersioningIntervalMs() } catch (_: Exception) { VERSION_CHECK_INTERVAL_MS }
+                if (autoEnabled) {
+                    checkAndCreateVersionOnTimer()
+                }
+                kotlinx.coroutines.delay(interval)
             }
         }
     }
@@ -367,30 +372,26 @@ class NoteEditViewModel(
         val content = currentUiState.content.text
         val noteId = currentNoteId
         
-        // Check only for notes with content (ignoring whitespace-only)
         if (content.trim().isBlank()) {
             return
         }
         
         try {
-                    // FIX RACE CONDITION: Use shouldCreateVersion for check
-        // instead of separate hasVersions + shouldCreateVersion calls
             val needsVersion = repository.shouldCreateVersion(noteId, content)
-            
             if (needsVersion) {
-                // Check if versions exist to choose correct description
                 val hasVersions = repository.getVersionsForNoteList(noteId).isNotEmpty()
-                
-                if (!hasVersions && content.length > 140) {
-                    // New note: create version only if >140 characters
-                    repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation), diffOpsJson = null)
-                } else if (hasVersions) {
-                    // Existing note: create version with autosave
+                if (!hasVersions) {
+                    // For new note, require min chars threshold (dynamic)
+                    val minChars = try { repository.getVersioningMinChangeChars() } catch (_: Exception) { 140 }
+                    if (content.length > minChars) {
+                        repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation), diffOpsJson = null)
+                    }
+                } else {
                     repository.createVersion(noteId, content, context.resources.getString(R.string.version_autosave), diffOpsJson = null)
                 }
             }
         } catch (e: Exception) {
-            // Versioning errors should not affect user experience
+            // swallow
         }
     }
 
@@ -406,23 +407,22 @@ class NoteEditViewModel(
         val content = currentUiState.content.text
         val noteId = currentNoteId
         
-        // Check only for notes with content
         if (content.isBlank()) {
             return
         }
         
         try {
-            // Fast existence check instead of loading list
+            val autoEnabled = try { repository.getVersioningAutoEnabled() } catch (_: Exception) { true }
             val hasVersions = repository.hasAnyVersion(noteId)
-            
             if (!hasVersions) {
-                // New note: create version on exit only if >=3 non-whitespace characters
+                // First version on exit should respect autoEnabled? Spec: disable all auto versions when off
+                if (!autoEnabled) return
                 if (content.trim().length >= 3) {
                     val diffOps = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(noteId)
                     repository.createVersion(noteId, content, context.resources.getString(R.string.version_creation), diffOpsJson = diffOps)
                 }
             } else {
-                // Existing note: check changes >140 characters
+                if (!autoEnabled) return
                 val needsVersion = repository.shouldCreateVersion(noteId, content)
                 if (needsVersion) {
                     val diffOps = com.ukhvat.notes.domain.util.DiffJournalStore.snapshotAndClear(noteId)
@@ -430,7 +430,7 @@ class NoteEditViewModel(
                 }
             }
         } catch (e: Exception) {
-            // Versioning errors should not affect user experience
+            // swallow
         }
     }
 

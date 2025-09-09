@@ -116,4 +116,9 @@ interface NoteDataSource {
      * Batch: set favorite flag for multiple notes
      */
     suspend fun setNotesFavorite(ids: List<Long>, isFavorite: Boolean)
+
+    /**
+     * Get per-note maximum versions limit (may be increased by forced saves)
+     */
+    suspend fun getMaxVersions(noteId: Long): Int?
 }

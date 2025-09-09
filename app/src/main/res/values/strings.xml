@@ -127,6 +127,28 @@
     <string name="version_ai_before_title">Генерация заголовка (до)</string>
     <string name="version_ai_after_title">Генерация заголовка (после)</string>
     <string name="version_info">Информация</string>
+    <string name="delete_all_versions_desc">Удалить все версии</string>
+    <string name="delete_all_versions_title">Удалить все версии?</string>
+    <string name="delete_all_versions_text">Будут удалены все сохранённые версии этой заметки. Это действие нельзя отменить.</string>
+    <string name="versions_deleted_count">Удалено версий: %1$d</string>
+    <string name="delete_all">Удалить всё</string>
+    <!-- Version history info dialog -->
+    <string name="version_history_info_desc">Информация о версионировании</string>
+    <string name="version_history_info_title">История версий — как это работает</string>
+    <!-- Versioning settings -->
+    <string name="versioning_settings_desc">Настройки версионирования</string>
+    <string name="versioning_settings_title">Настройки версионирования</string>
+    <string name="versioning_autocreate">Автосоздание версий</string>
+    <string name="versioning_interval">Интервал проверки</string>
+    <string name="interval_30s">30 сек</string>
+    <string name="interval_1m">1 мин</string>
+    <string name="interval_2m">2 мин</string>
+    <string name="interval_5m">5 мин</string>
+    <string name="versioning_min_chars">Минимум изменённых символов</string>
+    <string name="versioning_max_regular">Макс. обычных версий</string>
+    <string name="apply_cleanup_now">Очистить сейчас</string>
+    <string name="restore_defaults">Сбросить по умолчанию</string>
+    <string name="version_history_info_text">Версии — это снимки текста заметки. Они создаются по «Сохранить» (всегда) и автоматически каждые %1$d мин., если изменений больше %2$d символов, а также при первом выходе из новой заметки, если в ней минимум 3 символа. В полном просмотре подсвечиваются изменения: добавленное относительно предыдущей версии (зелёным) и отсутствующее относительно следующей (красным). Приоритет — изменениям. Принудительные версии сохраняются навсегда (их можно удалить вручную). Обычные версии: хранится %3$d последних.</string>
     <string name="version_ai_added_hashtags">Добавлены хештеги</string>
     <string name="ai_info_dialog_title">Информация</string>
     <string name="ai_info_provider">Провайдер: %1$s</string>

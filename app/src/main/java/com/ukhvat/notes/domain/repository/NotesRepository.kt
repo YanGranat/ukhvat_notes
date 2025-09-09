@@ -105,6 +105,21 @@ interface NotesRepository {
     suspend fun updateVersionAiMeta(versionId: Long, provider: String?, model: String?, durationMs: Long?)
     suspend fun updateVersionAiHashtags(versionId: Long, hashtags: String?)
 
+    /**
+     * Get per-note maximum versions limit
+     */
+    suspend fun getMaxVersions(noteId: Long): Int?
+
+    // ============ VERSIONING SETTINGS (GLOBAL) ============
+    suspend fun getVersioningAutoEnabled(): Boolean
+    suspend fun setVersioningAutoEnabled(enabled: Boolean)
+    suspend fun getVersioningIntervalMs(): Long
+    suspend fun setVersioningIntervalMs(intervalMs: Long)
+    suspend fun getVersioningMinChangeChars(): Int
+    suspend fun setVersioningMinChangeChars(chars: Int)
+    suspend fun getVersioningMaxRegularVersions(): Int
+    suspend fun setVersioningMaxRegularVersions(max: Int)
+
     // ============ Batch operations for versions ============
     
     /**

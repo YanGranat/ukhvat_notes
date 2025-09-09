@@ -55,6 +55,24 @@ interface PreferencesDataSource {
      */
     suspend fun setAutoSaveInterval(intervalMs: Long)
 
+    // ============ Versioning settings ============
+
+    /** Auto-create versions on timer and on exit */
+    suspend fun getVersioningAutoEnabled(): Boolean
+    suspend fun setVersioningAutoEnabled(enabled: Boolean)
+
+    /** Versioning check interval (ms) */
+    suspend fun getVersioningIntervalMs(): Long
+    suspend fun setVersioningIntervalMs(intervalMs: Long)
+
+    /** Minimum characters changed to create version */
+    suspend fun getVersioningMinChangeChars(): Int
+    suspend fun setVersioningMinChangeChars(chars: Int)
+
+    /** Max regular (non-forced) versions to keep per note */
+    suspend fun getVersioningMaxRegularVersions(): Int
+    suspend fun setVersioningMaxRegularVersions(max: Int)
+
     // ============ AI API keys ============
     /** Get saved OpenAI API key (or null if not set) */
     suspend fun getOpenAiApiKey(): String?

@@ -84,6 +84,43 @@ class ModularNotesRepository(
     override suspend fun getNoteById(id: Long): Note? {
         return noteDataSource.getNoteById(id)
     }
+
+    override suspend fun getMaxVersions(noteId: Long): Int? {
+        return noteDataSource.getMaxVersions(noteId)
+    }
+
+    // ============ VERSIONING SETTINGS (GLOBAL) ============
+    override suspend fun getVersioningAutoEnabled(): Boolean {
+        return preferencesDataSource.getVersioningAutoEnabled()
+    }
+
+    override suspend fun setVersioningAutoEnabled(enabled: Boolean) {
+        preferencesDataSource.setVersioningAutoEnabled(enabled)
+    }
+
+    override suspend fun getVersioningIntervalMs(): Long {
+        return preferencesDataSource.getVersioningIntervalMs()
+    }
+
+    override suspend fun setVersioningIntervalMs(intervalMs: Long) {
+        preferencesDataSource.setVersioningIntervalMs(intervalMs)
+    }
+
+    override suspend fun getVersioningMinChangeChars(): Int {
+        return preferencesDataSource.getVersioningMinChangeChars()
+    }
+
+    override suspend fun setVersioningMinChangeChars(chars: Int) {
+        preferencesDataSource.setVersioningMinChangeChars(chars)
+    }
+
+    override suspend fun getVersioningMaxRegularVersions(): Int {
+        return preferencesDataSource.getVersioningMaxRegularVersions()
+    }
+
+    override suspend fun setVersioningMaxRegularVersions(max: Int) {
+        preferencesDataSource.setVersioningMaxRegularVersions(max)
+    }
     
     override suspend fun updateNote(note: Note) {
         noteDataSource.updateNote(note)
@@ -438,15 +475,18 @@ class ModularNotesRepository(
             versionData
         }
         
+        // Load dynamic threshold from preferences (fallback to constant)
+        val threshold = try { preferencesDataSource.getVersioningMinChangeChars() } catch (_: Exception) { MIN_CHANGE_FOR_VERSION }
+        
         // Primary fast path: length delta
-        val lengthDifference = abs(newContent.length - latestContent.length)
-        if (lengthDifference > MIN_CHANGE_FOR_VERSION) return true
+        val lengthDifference = kotlin.math.abs(newContent.length - latestContent.length)
+        if (lengthDifference > threshold) return true
 
         // Fallback: content change ratio to detect substitutions of same length
         val changeRatio = calculateContentChangeRatio(latestContent, newContent)
         val maxLength = maxOf(latestContent.length, newContent.length)
         val changedCharsApprox = (changeRatio * maxLength).toInt()
-        return changedCharsApprox > MIN_CHANGE_FOR_VERSION
+        return changedCharsApprox > threshold
     }
 
     override suspend fun hasAnyVersion(noteId: Long): Boolean {

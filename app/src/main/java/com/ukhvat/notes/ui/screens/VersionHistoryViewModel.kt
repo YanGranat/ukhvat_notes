@@ -59,6 +59,47 @@ class VersionHistoryViewModel(
     }
 
     /**
+     * Deletes all versions for given note by iterating existing versions.
+     * Uses repository.deleteVersion() to preserve cache invalidation logic.
+     * @return number of deleted versions
+     */
+    suspend fun deleteAllVersions(noteId: Long): Int {
+        return try {
+            val versions = repository.getVersionsForNoteList(noteId)
+            var deleted = 0
+            for (v in versions) {
+                if (repository.deleteVersion(v.id)) deleted++
+            }
+            deleted
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    suspend fun getMaxVersions(noteId: Long): Int? {
+        return repository.getMaxVersions(noteId)
+    }
+
+    // ============ VERSIONING SETTINGS (GLOBAL) ============
+    suspend fun getVersioningAutoEnabled(): Boolean = repository.getVersioningAutoEnabled()
+    suspend fun setVersioningAutoEnabled(enabled: Boolean) = repository.setVersioningAutoEnabled(enabled)
+    suspend fun getVersioningIntervalMs(): Long = repository.getVersioningIntervalMs()
+    suspend fun setVersioningIntervalMs(intervalMs: Long) = repository.setVersioningIntervalMs(intervalMs)
+    suspend fun getVersioningMinChangeChars(): Int = repository.getVersioningMinChangeChars()
+    suspend fun setVersioningMinChangeChars(chars: Int) = repository.setVersioningMinChangeChars(chars)
+    suspend fun getVersioningMaxRegularVersions(): Int = repository.getVersioningMaxRegularVersions()
+    suspend fun setVersioningMaxRegularVersions(max: Int) = repository.setVersioningMaxRegularVersions(max)
+
+    suspend fun cleanupVersionsNow(noteId: Long, keepCount: Int) {
+        // Use DataSource path through repository if exposed in future; for now delete old manually
+        val versions = repository.getVersionsForNoteList(noteId)
+        if (versions.size > keepCount) {
+            val toDelete = versions.drop(keepCount)
+            toDelete.forEach { repository.deleteVersion(it.id) }
+        }
+    }
+
+    /**
      * Updates user-defined version name
      */
     suspend fun updateVersionName(versionId: Long, customName: String?) {

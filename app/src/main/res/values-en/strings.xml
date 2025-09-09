@@ -127,6 +127,28 @@
     <string name="version_ai_before_title">Generate title (before)</string>
     <string name="version_ai_after_title">Generate title (after)</string>
     <string name="version_info">Info</string>
+    <string name="delete_all_versions_desc">Delete all versions</string>
+    <string name="delete_all_versions_title">Delete all versions?</string>
+    <string name="delete_all_versions_text">All saved versions of this note will be deleted. This action cannot be undone.</string>
+    <string name="versions_deleted_count">Deleted versions: %1$d</string>
+    <string name="delete_all">Delete all</string>
+    <!-- Version history info dialog -->
+    <string name="version_history_info_desc">Versioning information</string>
+    <string name="version_history_info_title">Version History — How it works</string>
+    <!-- Versioning settings -->
+    <string name="versioning_settings_desc">Versioning settings</string>
+    <string name="versioning_settings_title">Versioning settings</string>
+    <string name="versioning_autocreate">Auto-create versions</string>
+    <string name="versioning_interval">Check interval</string>
+    <string name="interval_30s">30 sec</string>
+    <string name="interval_1m">1 min</string>
+    <string name="interval_2m">2 min</string>
+    <string name="interval_5m">5 min</string>
+    <string name="versioning_min_chars">Minimum changed characters</string>
+    <string name="versioning_max_regular">Max regular versions</string>
+    <string name="apply_cleanup_now">Clean up now</string>
+    <string name="restore_defaults">Reset to defaults</string>
+    <string name="version_history_info_text">Versions are snapshots of the note text. They are created via “Save” (always) and automatically every %1$d min if more than %2$d characters changed, and on the first exit from a new note if it contains at least 3 characters. In the full view, changes are highlighted: additions vs the previous version (green) and content missing vs the next (red). Changes have priority. Manual (forced) versions are kept indefinitely (you can delete them manually). Regular versions: the latest %3$d are kept.</string>
     <string name="version_ai_added_hashtags">Hashtags added</string>
     <string name="ai_info_dialog_title">Correction details</string>
     <string name="ai_info_provider">Provider: %1$s</string>

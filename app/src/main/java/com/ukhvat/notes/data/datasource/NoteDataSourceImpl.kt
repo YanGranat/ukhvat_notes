@@ -225,4 +225,8 @@ class NoteDataSourceImpl(
         if (ids.isEmpty()) return
         metadataDao.setFavoriteForIds(ids, isFavorite)
     }
+
+    override suspend fun getMaxVersions(noteId: Long): Int? {
+        return metadataDao.getMaxVersions(noteId)
+    }
 }

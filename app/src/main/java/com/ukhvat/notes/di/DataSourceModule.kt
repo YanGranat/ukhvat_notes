@@ -66,7 +66,8 @@ val dataSourceModule = module {
      */
     single<VersionDataSource> { 
         VersionDataSourceImpl(
-            versionDao = get()  // NoteVersionDao from main module
+            versionDao = get(),  // NoteVersionDao from main module
+            preferencesDataSource = get()
         ) 
     }
     

@@ -27,7 +27,8 @@ import kotlin.math.abs
  * - Preserved all versioning algorithms without logic changes
  */
 class VersionDataSourceImpl(
-    private val versionDao: NoteVersionDao
+    private val versionDao: NoteVersionDao,
+    private val preferencesDataSource: com.ukhvat.notes.domain.datasource.PreferencesDataSource
 ) : VersionDataSource {
     
     // ============ VERSION CREATION ============
@@ -36,9 +37,14 @@ class VersionDataSourceImpl(
     override suspend fun createVersion(noteId: Long, content: String, customName: String?, isForcedSave: Boolean, diffOpsJson: String?) {
         val version = createNoteVersion(noteId, content, customName, isForcedSave).copy(diffOpsJson = diffOpsJson)
         versionDao.insertVersion(version.toEntity())
-        // Enforce retention policy: keep latest 100 non-forced versions; preserve all forced
+        // Enforce retention policy: keep latest N non-forced versions; preserve all forced
         try {
-            versionDao.cleanupNonForcedVersionsKeepLatest(noteId, 100)
+            val maxKeep = try {
+                preferencesDataSource.getVersioningMaxRegularVersions()
+            } catch (_: Exception) {
+                com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS
+            }
+            versionDao.cleanupNonForcedVersionsKeepLatest(noteId, maxKeep)
         } catch (_: Exception) {
             // Best-effort cleanup; do not affect UX on failure
         }

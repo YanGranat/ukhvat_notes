@@ -87,6 +87,55 @@ class PreferencesDataSourceImpl(
         }
     }
 
+    // ============ VERSIONING SETTINGS ============
+    override suspend fun getVersioningAutoEnabled(): Boolean {
+        return withContext(preferencesDispatcher) {
+            prefs.getBoolean("versioning_auto_enabled", true)
+        }
+    }
+
+    override suspend fun setVersioningAutoEnabled(enabled: Boolean) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putBoolean("versioning_auto_enabled", enabled).apply()
+        }
+    }
+
+    override suspend fun getVersioningIntervalMs(): Long {
+        return withContext(preferencesDispatcher) {
+            prefs.getLong("versioning_interval_ms", com.ukhvat.notes.domain.util.VersioningConstants.VERSION_CHECK_INTERVAL_MS)
+        }
+    }
+
+    override suspend fun setVersioningIntervalMs(intervalMs: Long) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putLong("versioning_interval_ms", intervalMs).apply()
+        }
+    }
+
+    override suspend fun getVersioningMinChangeChars(): Int {
+        return withContext(preferencesDispatcher) {
+            prefs.getInt("versioning_min_change_chars", com.ukhvat.notes.domain.util.VersioningConstants.MIN_CHANGE_FOR_VERSION)
+        }
+    }
+
+    override suspend fun setVersioningMinChangeChars(chars: Int) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putInt("versioning_min_change_chars", chars).apply()
+        }
+    }
+
+    override suspend fun getVersioningMaxRegularVersions(): Int {
+        return withContext(preferencesDispatcher) {
+            prefs.getInt("versioning_max_regular_versions", com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS)
+        }
+    }
+
+    override suspend fun setVersioningMaxRegularVersions(max: Int) {
+        withContext(preferencesDispatcher) {
+            prefs.edit().putInt("versioning_max_regular_versions", max).apply()
+        }
+    }
+
     // ============ AI API keys ============
     override suspend fun getOpenAiApiKey(): String? {
         return withContext(preferencesDispatcher) {

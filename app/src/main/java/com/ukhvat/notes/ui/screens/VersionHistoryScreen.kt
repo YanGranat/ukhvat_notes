@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import com.ukhvat.notes.ui.theme.ColorManager
 import androidx.compose.runtime.*
@@ -76,6 +77,9 @@ fun VersionHistoryScreen(
     var showDeleteDialog by remember { mutableStateOf<NoteVersion?>(null) }
     var showRenameDialog by remember { mutableStateOf<NoteVersion?>(null) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val colors = rememberGlobalColors()
 
@@ -91,7 +95,7 @@ fun VersionHistoryScreen(
                 Text(
                     text = stringResource(R.string.version_history_title),
                     color = Color.White,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize * 0.80f,
                     fontWeight = FontWeight.Normal
                 )
             },
@@ -105,10 +109,35 @@ fun VersionHistoryScreen(
                 }
             },
             actions = {
+                // Export button (left)
                 IconButton(onClick = { showExportDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.Share,
                         contentDescription = stringResource(R.string.export_history),
+                        tint = Color.White
+                    )
+                }
+                // Info button (middle)
+                IconButton(onClick = { showInfoDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = stringResource(R.string.version_history_info_desc),
+                        tint = Color.White
+                    )
+                }
+                // Delete all versions
+                IconButton(onClick = { showDeleteAllDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete_all_versions_desc),
+                        tint = Color.White
+                    )
+                }
+                // Settings (rightmost)
+                IconButton(onClick = { showSettingsDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.versioning_settings_desc),
                         tint = Color.White
                     )
                 }
@@ -118,6 +147,223 @@ fun VersionHistoryScreen(
             )
         )
         
+        // Versioning info dialog
+        if (showInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { showInfoDialog = false },
+                containerColor = colors.dialogBackground,
+                shape = RoundedCornerShape(12.dp),
+                title = {
+                    Text(
+                        text = stringResource(R.string.version_history_info_title),
+                        color = colors.menuText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                text = {
+                    // Use dynamic parameters: interval minutes, min chars, max versions
+                    val minutes = (com.ukhvat.notes.domain.util.VersioningConstants.VERSION_CHECK_INTERVAL_MS / 60_000L).toInt()
+                    val minChars = com.ukhvat.notes.domain.util.VersioningConstants.MIN_CHANGE_FOR_VERSION
+                    // Prefer note-specific maxVersions if available; fall back to default
+                    var maxVersions: Int? by remember { mutableStateOf<Int?>(null) }
+                    LaunchedEffect(noteId) {
+                        maxVersions = try { viewModel.getMaxVersions(noteId) } catch (e: Exception) { null }
+                    }
+                    val maxKeep = maxVersions ?: com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS
+                    Text(
+                        text = stringResource(R.string.version_history_info_text, minutes, minChars, maxKeep),
+                        color = colors.text,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showInfoDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = colors.primary
+                        )
+                    ) {
+                        Text(stringResource(R.string.understand))
+                    }
+                }
+            )
+        }
+
+        // Versioning settings dialog
+        if (showSettingsDialog) {
+            var autoEnabled by remember { mutableStateOf(true) }
+            var intervalMs by remember { mutableStateOf(com.ukhvat.notes.domain.util.VersioningConstants.VERSION_CHECK_INTERVAL_MS) }
+            var minCharsInput by remember { mutableStateOf(com.ukhvat.notes.domain.util.VersioningConstants.MIN_CHANGE_FOR_VERSION.toString()) }
+            var maxRegularInput by remember { mutableStateOf(com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS.toString()) }
+
+            LaunchedEffect(Unit) {
+                // Load current settings
+                try {
+                    autoEnabled = viewModel.getVersioningAutoEnabled()
+                    intervalMs = viewModel.getVersioningIntervalMs()
+                    minCharsInput = viewModel.getVersioningMinChangeChars().toString()
+                    maxRegularInput = viewModel.getVersioningMaxRegularVersions().toString()
+                } catch (_: Exception) { }
+            }
+
+            AlertDialog(
+                onDismissRequest = { showSettingsDialog = false },
+                containerColor = colors.dialogBackground,
+                shape = RoundedCornerShape(12.dp),
+                title = {
+                    Text(
+                        text = stringResource(R.string.versioning_settings_title),
+                        color = colors.menuText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Auto-create toggle
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = stringResource(R.string.versioning_autocreate), color = colors.text, modifier = Modifier.weight(1f))
+                            Switch(checked = autoEnabled, onCheckedChange = { autoEnabled = it })
+                        }
+
+                        // Interval radio group (enabled only when auto)
+                        Text(text = stringResource(R.string.versioning_interval), color = colors.textSecondary)
+                        val intervals = listOf(30_000L to R.string.interval_30s, 60_000L to R.string.interval_1m, 120_000L to R.string.interval_2m, 300_000L to R.string.interval_5m)
+                        intervals.forEach { (ms, labelRes) ->
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(enabled = autoEnabled) { if (autoEnabled) intervalMs = ms }) {
+                                RadioButton(selected = intervalMs == ms && autoEnabled, onClick = { if (autoEnabled) intervalMs = ms }, enabled = autoEnabled, colors = RadioButtonDefaults.colors(selectedColor = colors.primary))
+                                Text(text = stringResource(labelRes), color = if (autoEnabled) colors.text else colors.textSecondary)
+                            }
+                        }
+
+                        // Min changed chars input
+                        Text(text = stringResource(R.string.versioning_min_chars), color = colors.textSecondary)
+                        OutlinedTextField(
+                            value = minCharsInput,
+                            onValueChange = { value -> if (value.length <= 6 && value.all { it.isDigit() } || value.isEmpty()) minCharsInput = value },
+                            singleLine = true,
+                            textStyle = LocalTextStyle.current.copy(color = colors.text),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = colors.text,
+                                unfocusedTextColor = colors.text,
+                                cursorColor = colors.primary,
+                                focusedBorderColor = colors.primary,
+                                unfocusedBorderColor = colors.textSecondary
+                            )
+                        )
+
+                        // Max regular versions input + cleanup button
+                        Text(text = stringResource(R.string.versioning_max_regular), color = colors.textSecondary)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = maxRegularInput,
+                                onValueChange = { value -> if (value.length <= 6 && value.all { it.isDigit() } || value.isEmpty()) maxRegularInput = value },
+                                singleLine = true,
+                                textStyle = LocalTextStyle.current.copy(color = colors.text),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = colors.text,
+                                    unfocusedTextColor = colors.text,
+                                    cursorColor = colors.primary,
+                                    focusedBorderColor = colors.primary,
+                                    unfocusedBorderColor = colors.textSecondary
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = {
+                                val maxVal = maxRegularInput.toIntOrNull() ?: com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS
+                                coroutineScope.launch {
+                                    viewModel.cleanupVersionsNow(noteId, maxVal)
+                                    Toast.makeText(context, context.getString(R.string.versions_deleted_count, 0), Toast.LENGTH_SHORT).show()
+                                }
+                            }) {
+                                Text(stringResource(R.string.apply_cleanup_now))
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        // Persist settings
+                        val minChars = minCharsInput.toIntOrNull()?.coerceIn(0, 1_000_000) ?: 140
+                        val maxKeep = maxRegularInput.toIntOrNull()?.coerceIn(10, 1_000_000) ?: 100
+                        coroutineScope.launch {
+                            viewModel.setVersioningAutoEnabled(autoEnabled)
+                            viewModel.setVersioningIntervalMs(intervalMs)
+                            viewModel.setVersioningMinChangeChars(minChars)
+                            viewModel.setVersioningMaxRegularVersions(maxKeep)
+                        }
+                        showSettingsDialog = false
+                    }, colors = ButtonDefaults.textButtonColors(contentColor = colors.primary)) {
+                        Text(stringResource(R.string.save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        // Restore defaults
+                        autoEnabled = true
+                        intervalMs = com.ukhvat.notes.domain.util.VersioningConstants.VERSION_CHECK_INTERVAL_MS
+                        minCharsInput = com.ukhvat.notes.domain.util.VersioningConstants.MIN_CHANGE_FOR_VERSION.toString()
+                        maxRegularInput = com.ukhvat.notes.domain.util.VersioningConstants.DEFAULT_MAX_VERSIONS.toString()
+                    }, colors = ButtonDefaults.textButtonColors(contentColor = colors.text)) {
+                        Text(stringResource(R.string.restore_defaults))
+                    }
+                }
+            )
+        }
+
+        // Delete all versions confirmation dialog
+        if (showDeleteAllDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteAllDialog = false },
+                containerColor = colors.dialogBackground,
+                shape = RoundedCornerShape(12.dp),
+                title = {
+                    Text(
+                        text = stringResource(R.string.delete_all_versions_title),
+                        color = colors.menuText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.delete_all_versions_text),
+                        color = colors.text,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteAllDialog = false
+                            coroutineScope.launch {
+                                val deleted = viewModel.deleteAllVersions(noteId)
+                                Toast.makeText(context, context.getString(R.string.versions_deleted_count, deleted), Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = colors.primary
+                        )
+                    ) {
+                        Text(stringResource(R.string.delete_all))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteAllDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = colors.text
+                        )
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
+
         val versionsList = versions
         when {
             versionsList == null -> {
