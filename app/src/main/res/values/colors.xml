@@ -24,4 +24,10 @@
     <color name="button_accent_light">#1c75d3</color>        <!-- Some window button color -->
     <color name="card_background_light">#F5F5F5</color>      <!-- Version history card color -->
     <color name="text_secondary_light">#757575</color>      <!-- Grayer accent text -->
+
+    <!-- Match NoteColors: Surface dark = #616161; Light surface approximated as white -->
+    <color name="widget_surface_dark">#616161</color>
+    <color name="widget_surface_light">#FFFFFF</color>
+    <color name="widget_text_dark">#FFFFFF</color>
+    <color name="widget_text_light">#212121</color>
 </resources> 

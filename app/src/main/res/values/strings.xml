@@ -389,6 +389,7 @@
     <string name="quick_note_enabled">Включено</string>
     <string name="quick_note_disabled">Отключено</string>
     <string name="quick_note_description">Показывать уведомление в шторке для быстрого создания заметок</string>
+    <string name="qs_quick_note">Быстрая заметка</string>
     <string name="quick_note_created">Заметка создана через шторку уведомлений</string>
     <string name="quick_note_permission_required">Требуется разрешение на уведомления</string>
     <string name="api_key_openai">OpenAI API Key</string>
@@ -456,4 +457,8 @@
     <string name="cancel_selection_desc">Отменить выбор</string>
     <string name="select_all_desc">Выделить всё</string>
     <string name="remove_from_favorites">Убрать из избранного</string>
+    
+    <!-- Widgets -->
+    <string name="widget_note_label">Заметка</string>
+    <string name="select_note_for_widget">Выберите заметку для виджета</string>
 </resources> 

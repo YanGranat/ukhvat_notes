@@ -3,16 +3,15 @@ package com.ukhvat.notes.data.services
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.app.PendingIntent
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.ukhvat.notes.MainActivity
-import com.ukhvat.notes.R
 import com.ukhvat.notes.domain.model.Note
 import com.ukhvat.notes.domain.repository.NotesRepository
 import com.ukhvat.notes.domain.util.NotificationService
@@ -52,12 +51,13 @@ class NotificationServiceImpl(
             val channel = NotificationChannel(
                 QUICK_NOTE_CHANNEL_ID,
                 "Быстрое создание заметок",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Уведомление для быстрого создания заметок из шторки"
                 setShowBadge(false)
-                enableVibration(true)
-                enableLights(true)
+                enableVibration(false)
+                enableLights(false)
+                setSound(null, null)
             }
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -66,15 +66,14 @@ class NotificationServiceImpl(
     }
 
     override suspend fun showQuickNoteNotification() {
-        val notification = buildQuickNoteNotification()
-        withContext(Dispatchers.Main) {
-            notificationManager.notify(QUICK_NOTE_NOTIFICATION_ID, notification)
-        }
+        // Do not start foreground service if posting notifications is not permitted
+        if (!hasNotificationPermission()) return
+        withContext(Dispatchers.Main) { QuickNoteForegroundService.start(context) }
     }
 
     override suspend fun hideQuickNoteNotification() {
         withContext(Dispatchers.Main) {
-            notificationManager.cancel(QUICK_NOTE_NOTIFICATION_ID)
+            QuickNoteForegroundService.stop(context)
         }
     }
 
@@ -84,53 +83,48 @@ class NotificationServiceImpl(
             return
         }
 
-        // При обновлении уведомления перечитываем clipboard для актуальности
-        withContext(Dispatchers.Main) {
-            showQuickNoteNotification()
-        }
+        // Обновление уведомления (если есть разрешение)
+        if (!hasNotificationPermission()) return
+        withContext(Dispatchers.Main) { QuickNoteForegroundService.update(context) }
     }
 
     /**
-     * Строит уведомление с quick actions
+     * Build an ongoing notification for Android 14+ fallback (no FGS start).
      */
     private fun buildQuickNoteNotification(): android.app.Notification {
-        // Intent для создания новой заметки (при нажатии на уведомление)
         val createNewNoteIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             action = ACTION_OPEN_APP
-            putExtra("create_new_note", true) // Флаг для создания новой заметки
+            putExtra("create_new_note", true)
         }
         val createNewNotePendingIntent = PendingIntent.getActivity(
-            context, 0, createNewNoteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context,
+            0,
+            createNewNoteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-
-
-
+        val createWithClipboardPendingIntent = PendingIntent.getActivity(
+            context,
+            2,
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                action = "com.ukhvat.notes.ACTION_CREATE_WITH_CLIPBOARD"
+                putExtra("create_new_note_with_text", true)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         return NotificationCompat.Builder(context, QUICK_NOTE_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_add) // Используем системную иконку
+            .setSmallIcon(android.R.drawable.ic_menu_add)
             .setContentTitle("Быстрое создание заметки")
             .setContentText("Нажмите для создания новой заметки")
             .setContentIntent(createNewNotePendingIntent)
-            .setOngoing(true) // Уведомление не исчезает при свайпе
+            .setOngoing(true)
             .setAutoCancel(false)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .addAction(
-                android.R.drawable.ic_menu_edit, // Иконка для вставки текста
-                "Создать с текстом",
-                PendingIntent.getActivity(
-                    context,
-                    2,
-                    Intent(context, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        action = "com.ukhvat.notes.ACTION_CREATE_WITH_CLIPBOARD"
-                        putExtra("create_new_note_with_text", true)
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-            )
+            .addAction(android.R.drawable.ic_menu_edit, "Создать с текстом", createWithClipboardPendingIntent)
             .build()
     }
 

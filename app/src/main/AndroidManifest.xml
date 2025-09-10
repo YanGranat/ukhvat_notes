@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".UkhvatApplication"
@@ -31,6 +33,28 @@
             </intent-filter>
         </activity>
         
+        <!-- AppWidget Provider and configuration Activity -->
+        <receiver
+            android:name=".ui.widget.NoteWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_note_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/note_widget_info" />
+        </receiver>
+
+        <activity
+            android:name=".ui.widget.NoteWidgetConfigureActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ukhvat">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -48,6 +72,31 @@
             android:exported="false">
             <meta-data
                 android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <!-- Foreground service to pin non-dismissible quick-note notification -->
+        <service
+            android:name=".data.services.QuickNoteForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+        <!-- Receiver to block notification swipe dismissal -->
+        <receiver
+            android:name=".data.services.QuickNoteSwipeBlockReceiver"
+            android:exported="false" />
+
+        <!-- Quick Settings tile to create a new note -->
+        <service
+            android:name=".data.services.QuickNoteTileService"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/qs_quick_note"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE" 
                 android:value="true" />
         </service>
 

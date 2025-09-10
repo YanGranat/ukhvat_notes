@@ -321,6 +321,10 @@ class NoteEditViewModel(
                 
                 // Simple save WITHOUT versioning (versions created separately)
                 repository.updateNote(updatedNote)
+                // Trigger widget refresh for any widgets bound to this note
+                try {
+                    com.ukhvat.notes.ui.widget.NoteWidgetProvider.requestUpdate(context)
+                } catch (_: Exception) { }
                 
                         // Reset hasUnsavedChanges flag after successful save
         // This prevents duplicate save in handleNavigateBack() on fast input and exit
@@ -502,6 +506,10 @@ class NoteEditViewModel(
                     isFavorite = _uiState.value.isFavorite
                 )
                 repository.updateNote(updatedNote)
+                // Trigger widget refresh for any widgets bound to this note
+                try {
+                    com.ukhvat.notes.ui.widget.NoteWidgetProvider.requestUpdate(context)
+                } catch (_: Exception) { }
                 
                 // User success notification
                 toaster.toast(R.string.note_saved)
@@ -1243,6 +1251,10 @@ class NoteEditViewModel(
                                 // Title automatically recalculated in toMetadataEntityForSave()
                             )
                             repository.updateNote(updatedNote)
+                            // Trigger widget refresh after content change on exit
+                            try {
+                                com.ukhvat.notes.ui.widget.NoteWidgetProvider.requestUpdate(context)
+                            } catch (_: Exception) { }
                         }
                         // If content changed, note will move to top (updatedAt changed)
                         shouldScrollToTop = shouldScrollToTop || contentChanged

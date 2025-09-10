@@ -58,8 +58,8 @@ class UkhvatApplication : Application(), KoinComponent {
         // 50-125ms cold start delay when user opens notes list
         preloadDatabaseAsync()
 
-        // Initialize quick note notifications if enabled
-        initializeQuickNoteNotifications()
+        // Quick note notification is initialized on user action inside the app to avoid
+        // ForegroundServiceStartNotAllowedException on modern Android versions.
     }
 
     /**

@@ -40,6 +40,10 @@ import com.ukhvat.notes.ui.theme.UkhvatTheme
 import com.ukhvat.notes.ui.theme.NavigationState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
+import com.ukhvat.notes.domain.util.NotificationService
 
 
 
@@ -93,6 +97,16 @@ class MainActivity : AppCompatActivity() {
 
                 MainNavigation(viewModel = viewModel)
             }
+        }
+
+        // Ensure pinned quick-note is started when app is foreground and user enabled it
+        lifecycleScope.launch {
+            try {
+                val notificationService: NotificationService = get()
+                if (notificationService.isQuickNoteEnabled()) {
+                    notificationService.showQuickNoteNotification()
+                }
+            } catch (_: Exception) { }
         }
     }
 
@@ -180,6 +194,15 @@ fun MainNavigation(
 
             // Clear the intent flags to prevent repeated creation
             activity?.intent?.removeExtra("create_new_note_with_text")
+        }
+    }
+
+    // Handle deep link to open a specific note (from widget tap)
+    val openNoteId = activity?.intent?.getLongExtra("open_note_id", -1L) ?: -1L
+    LaunchedEffect(openNoteId) {
+        if (openNoteId > 0L) {
+            navController.navigate("edit_note/$openNoteId")
+            activity?.intent?.removeExtra("open_note_id")
         }
     }
 
