@@ -14,5 +14,3 @@ class QuickNoteSwipeBlockReceiver : BroadcastReceiver() {
         QuickNoteForegroundService.update(context)
     }
 }
-
-

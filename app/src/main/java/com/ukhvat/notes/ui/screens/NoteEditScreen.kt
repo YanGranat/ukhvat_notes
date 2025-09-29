@@ -301,13 +301,20 @@ private fun NoteEditContent(
                                   onEvent(NoteEditEvent.AiGenerateTitle)
                               }
                           )
-                           DropdownMenuItem(
-                               text = { Text(stringResource(R.string.ai_generate_hashtags), color = colors.menuText) },
-                               onClick = {
-                                   showAiMenu = false
-                                   onEvent(NoteEditEvent.AiGenerateHashtags)
-                               }
-                           )
+                          DropdownMenuItem(
+                              text = { Text(stringResource(R.string.ai_generate_hashtags), color = colors.menuText) },
+                              onClick = {
+                                  showAiMenu = false
+                                  onEvent(NoteEditEvent.AiGenerateHashtags)
+                              }
+                          )
+                          DropdownMenuItem(
+                              text = { Text(stringResource(R.string.ai_translate), color = colors.menuText) },
+                              onClick = {
+                                  showAiMenu = false
+                                  onEvent(NoteEditEvent.ShowTranslateDialog)
+                              }
+                          )
                       }
                       // Menu button
                       IconButton(
@@ -600,6 +607,21 @@ private fun NoteEditContent(
             onSave = { raw -> onEvent(NoteEditEvent.SaveHashtags(raw)) }
         )
     }
+
+    if (uiState.showTranslateDialog) {
+        TranslateDialog(
+            onDismiss = { onEvent(NoteEditEvent.HideTranslateDialog) },
+            onTranslateRu = {
+                val sel = textController.textFieldState.selection
+                if (!sel.collapsed) onEvent(NoteEditEvent.AiTranslateToRuInRange(sel.start, sel.end)) else onEvent(NoteEditEvent.AiTranslateToRu)
+            },
+            onTranslateEn = {
+                val sel = textController.textFieldState.selection
+                if (!sel.collapsed) onEvent(NoteEditEvent.AiTranslateToEnInRange(sel.start, sel.end)) else onEvent(NoteEditEvent.AiTranslateToEn)
+            },
+            colors = colors
+        )
+    }
 }
 
 @Composable
@@ -742,6 +764,68 @@ private fun HashtagEditorDialog(
                 Text(stringResource(R.string.cancel), color = colors.dialogText)
             }
         }
+    )
+}
+
+
+@Composable
+private fun TranslateDialog(
+    onDismiss: () -> Unit,
+    onTranslateRu: () -> Unit,
+    onTranslateEn: () -> Unit,
+    colors: com.ukhvat.notes.ui.theme.GlobalColorBundle
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.dialogBackground,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 0.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        onTranslateEn()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                        contentColor = colors.dialogText,
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.dp,
+                        color = androidx.compose.ui.graphics.Color(0xFF757575)
+                    )
+                ) {
+                    Text(stringResource(R.string.ai_translate_to_en))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        onTranslateRu()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                        contentColor = colors.dialogText,
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.dp,
+                        color = androidx.compose.ui.graphics.Color(0xFF757575)
+                    )
+                ) {
+                    Text(stringResource(R.string.ai_translate_to_ru))
+                }
+            }
+        },
+        confirmButton = {}
     )
 }
 

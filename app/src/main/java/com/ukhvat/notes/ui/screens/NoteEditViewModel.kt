@@ -189,6 +189,12 @@ class NoteEditViewModel(
             is NoteEditEvent.AiFixErrorsInRange -> aiFixErrorsInRange(event.start, event.end)
             is NoteEditEvent.AiGenerateTitle -> aiGenerateTitle()
             is NoteEditEvent.AiGenerateHashtags -> aiGenerateHashtags()
+            is NoteEditEvent.AiTranslateToEn -> aiTranslate(com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage.EN)
+            is NoteEditEvent.AiTranslateToRu -> aiTranslate(com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage.RU)
+            is NoteEditEvent.AiTranslateToEnInRange -> aiTranslateInRange(com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage.EN, event.start, event.end)
+            is NoteEditEvent.AiTranslateToRuInRange -> aiTranslateInRange(com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage.RU, event.start, event.end)
+            is NoteEditEvent.ShowTranslateDialog -> _uiState.value = _uiState.value.copy(showTranslateDialog = true)
+            is NoteEditEvent.HideTranslateDialog -> _uiState.value = _uiState.value.copy(showTranslateDialog = false)
             is NoteEditEvent.EditHashtags -> editHashtags()
             is NoteEditEvent.SaveHashtags -> saveHashtags(event.raw)
             is NoteEditEvent.CancelHashtagsEdit -> cancelHashtagsEdit()
@@ -1368,6 +1374,156 @@ class NoteEditViewModel(
         }
     }
 
+    /**
+     * AI: Translate current note (or selected range if selection exists) to target language.
+     * Preserves selection logic similar to AiFixErrors.
+     */
+    private fun aiTranslate(target: com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage) {
+        val fullContent = _uiState.value.content.text
+        if (fullContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+
+                // Create version BEFORE translation (full snapshot)
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = fullContent,
+                        changeDescription = context.resources.getString(R.string.version_ai_before_translate)
+                    )
+                } catch (_: Exception) {}
+
+                val aiResult = aiDataSource.translate(fullContent, target)
+                val translated = aiResult.text
+
+                _uiState.value = _uiState.value.copy(
+                    content = TextFieldValue(translated, TextRange(translated.length)),
+                    hasUnsavedChanges = true,
+                    isAiBusy = false
+                )
+
+                // Create version AFTER translation
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = translated,
+                        changeDescription = context.resources.getString(R.string.version_ai_after_translate)
+                    )
+                    val latest = try { repository.getVersionsForNoteList(currentNoteId).firstOrNull() } catch (_: Exception) { null }
+                    latest?.let {
+                        repository.updateVersionAiMeta(
+                            versionId = it.id,
+                            provider = aiResult.provider.name,
+                            model = aiResult.model,
+                            durationMs = System.currentTimeMillis() - startedAt
+                        )
+                    }
+                } catch (_: Exception) {}
+
+                val elapsedMs = System.currentTimeMillis() - startedAt
+                val human = formatElapsed(elapsedMs)
+                toaster.toast(R.string.ai_translated_with_time, human)
+                lastAiMeta = AiMeta(provider = aiResult.provider, model = aiResult.model, elapsedMs = elapsedMs)
+
+                autoSaveJob?.cancel()
+                autoSaveJob = viewModelScope.launch {
+                    delay(DEBOUNCE_DELAY_MS)
+                    saveNote()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
+    private fun aiTranslateInRange(target: com.ukhvat.notes.domain.datasource.AiDataSource.AiLanguage, start: Int, end: Int) {
+        val fullContent = _uiState.value.content.text
+        if (fullContent.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                error = context.getString(R.string.add_text_first)
+            )
+            return
+        }
+
+        val safeStart = start.coerceIn(0, fullContent.length)
+        val safeEnd = end.coerceIn(safeStart, fullContent.length)
+
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isAiBusy = true)
+                val startedAt = System.currentTimeMillis()
+
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = fullContent,
+                        changeDescription = context.resources.getString(R.string.version_ai_before_translate)
+                    )
+                } catch (_: Exception) {}
+
+                val fragment = fullContent.substring(safeStart, safeEnd)
+                val aiResult = aiDataSource.translate(fragment, target)
+                val translated = aiResult.text
+
+                val result = buildString(fullContent.length - (safeEnd - safeStart) + translated.length) {
+                    append(fullContent, 0, safeStart)
+                    append(translated)
+                    append(fullContent, safeEnd, fullContent.length)
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    content = TextFieldValue(result, TextRange(safeStart + translated.length)),
+                    hasUnsavedChanges = true,
+                    isAiBusy = false
+                )
+
+                try {
+                    repository.createVersion(
+                        noteId = currentNoteId,
+                        content = result,
+                        changeDescription = context.resources.getString(R.string.version_ai_after_translate)
+                    )
+                    val latest = try { repository.getVersionsForNoteList(currentNoteId).firstOrNull() } catch (_: Exception) { null }
+                    latest?.let {
+                        repository.updateVersionAiMeta(
+                            versionId = it.id,
+                            provider = aiResult.provider.name,
+                            model = aiResult.model,
+                            durationMs = System.currentTimeMillis() - startedAt
+                        )
+                    }
+                } catch (_: Exception) {}
+
+                val elapsedMs = System.currentTimeMillis() - startedAt
+                val human = formatElapsed(elapsedMs)
+                toaster.toast(R.string.ai_translated_with_time, human)
+                lastAiMeta = AiMeta(provider = aiResult.provider, model = aiResult.model, elapsedMs = elapsedMs)
+
+                autoSaveJob?.cancel()
+                autoSaveJob = viewModelScope.launch {
+                    delay(DEBOUNCE_DELAY_MS)
+                    saveNote()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = context.getString(R.string.update_error, e.localizedMessage ?: ""),
+                    isAiBusy = false
+                )
+            }
+        }
+    }
+
     /** Open inline hashtag editor dialog from Note Info menu */
     private fun editHashtags() {
         viewModelScope.launch {
@@ -1517,6 +1673,7 @@ data class NoteEditUiState(
     val searchMatches: List<SearchMatch> = emptyList(),
     val currentMatchIndex: Int = -1,
     val showSearchNavigation: Boolean = false,
+    val showTranslateDialog: Boolean = false,
 
     // AI busy indicator for UI (e.g., greyed icon)
     val isAiBusy: Boolean = false,
@@ -1568,6 +1725,12 @@ sealed class NoteEditEvent {
     data class AiFixErrorsInRange(val start: Int, val end: Int) : NoteEditEvent()
     object AiGenerateTitle : NoteEditEvent()
     object AiGenerateHashtags : NoteEditEvent()
+    object AiTranslateToEn : NoteEditEvent()
+    object AiTranslateToRu : NoteEditEvent()
+    data class AiTranslateToEnInRange(val start: Int, val end: Int) : NoteEditEvent()
+    data class AiTranslateToRuInRange(val start: Int, val end: Int) : NoteEditEvent()
+    object ShowTranslateDialog : NoteEditEvent()
+    object HideTranslateDialog : NoteEditEvent()
     object EditHashtags : NoteEditEvent()
     data class SaveHashtags(val raw: String) : NoteEditEvent()
     object CancelHashtagsEdit : NoteEditEvent()

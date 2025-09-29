@@ -32,6 +32,14 @@ interface AiDataSource {
      * Returns a single-line string with space-separated hashtags (each starting with '#').
      */
     suspend fun generateHashtags(note: String, existing: List<String> = emptyList()): AiResult
+
+    enum class AiLanguage { RU, EN }
+
+    /**
+     * Translates the given text to the target language (RU/EN).
+     * Returns translated text with provider and model used.
+     */
+    suspend fun translate(text: String, target: AiLanguage): AiResult
 }
 
 

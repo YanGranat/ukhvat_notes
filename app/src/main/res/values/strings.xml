@@ -98,8 +98,12 @@
     <string name="ai_fix_errors">Исправить ошибки</string>
     <string name="ai_generate_title">Сгенерировать заголовок</string>
     <string name="ai_generate_hashtags">Сгенерировать хештеги</string>
+    <string name="ai_translate">Перевести</string>
+    <string name="ai_translate_to_en">Перевести на английский</string>
+    <string name="ai_translate_to_ru">Перевести на русский</string>
     <string name="ai_fixed_short">Ошибки исправлены</string>
     <string name="ai_fixed_with_time">Ошибки исправлены (%1$s)</string>
+    <string name="ai_translated_with_time">Переведено (%1$s)</string>
     <string name="provider">Провайдер</string>
     <string name="openai_models">Модели OpenAI</string>
     <string name="google_gemini_models">Модели Google Gemini</string>
@@ -150,6 +154,8 @@
     <string name="restore_defaults">Сбросить по умолчанию</string>
     <string name="version_history_info_text">Версии — это снимки текста заметки. Они создаются по «Сохранить» (всегда) и автоматически каждые %1$d мин., если изменений больше %2$d символов, а также при первом выходе из новой заметки, если в ней минимум 3 символа. В полном просмотре подсвечиваются изменения: добавленное относительно предыдущей версии (зелёным) и отсутствующее относительно следующей (красным). Приоритет — изменениям. Принудительные версии сохраняются навсегда (их можно удалить вручную). Обычные версии: хранится %3$d последних.</string>
     <string name="version_ai_added_hashtags">Добавлены хештеги</string>
+    <string name="version_ai_before_translate">Перед переводом</string>
+    <string name="version_ai_after_translate">После перевода</string>
     <string name="ai_info_dialog_title">Информация</string>
     <string name="ai_info_provider">Провайдер: %1$s</string>
     <string name="ai_info_model">Модель: %1$s</string>

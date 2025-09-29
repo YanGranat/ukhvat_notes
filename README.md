@@ -32,6 +32,7 @@
     - **Fix Errors**: Corrects text using an LLM. Works on a selected fragment or the entire note.
     - **Generate Title**: Creates a concise title (up to 50 characters) and inserts it at the top of the note.
     - **Generate Hashtags**: Analyzes the note and suggests 1-5 relevant hashtags, preserving existing ones.
+    - **Translate (RU/EN)**: Translates selected text or the whole note with a simple language picker.
 
 ## 📱 What it does
 

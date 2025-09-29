@@ -98,8 +98,12 @@
     <string name="ai_fix_errors">Fix errors</string>
     <string name="ai_generate_title">Generate title</string>
     <string name="ai_generate_hashtags">Generate hashtags</string>
+    <string name="ai_translate">Translate</string>
+    <string name="ai_translate_to_en">Translate to English</string>
+    <string name="ai_translate_to_ru">Translate to Russian</string>
     <string name="ai_fixed_short">Errors fixed</string>
     <string name="ai_fixed_with_time">Errors fixed (%1$s)</string>
+    <string name="ai_translated_with_time">Translated (%1$s)</string>
     <string name="provider">Provider</string>
     <string name="openai_models">OpenAI models</string>
     <string name="google_gemini_models">Google Gemini models</string>
@@ -150,6 +154,8 @@
     <string name="restore_defaults">Reset to defaults</string>
     <string name="version_history_info_text">Versions are snapshots of the note text. They are created via “Save” (always) and automatically every %1$d min if more than %2$d characters changed, and on the first exit from a new note if it contains at least 3 characters. In the full view, changes are highlighted: additions vs the previous version (green) and content missing vs the next (red). Changes have priority. Manual (forced) versions are kept indefinitely (you can delete them manually). Regular versions: the latest %3$d are kept.</string>
     <string name="version_ai_added_hashtags">Hashtags added</string>
+    <string name="version_ai_before_translate">Before translation</string>
+    <string name="version_ai_after_translate">After translation</string>
     <string name="ai_info_dialog_title">Correction details</string>
     <string name="ai_info_provider">Provider: %1$s</string>
     <string name="ai_info_model">Model: %1$s</string>

@@ -14,6 +14,7 @@ import com.ukhvat.notes.domain.datasource.VersionDataSource
 import com.ukhvat.notes.domain.datasource.TrashDataSource
 import com.ukhvat.notes.domain.datasource.PreferencesDataSource
 import com.ukhvat.notes.domain.datasource.TagDataSource
+import com.ukhvat.notes.domain.datasource.PromptDataSource
 import org.koin.android.ext.koin.androidContext
 import okhttp3.OkHttpClient
 import org.koin.core.qualifier.named
@@ -109,6 +110,14 @@ val dataSourceModule = module {
     }
 
     // ============ AI DATASOURCE ============
+    // Prompts DataSource: load .md prompts from assets/prompts
+    single<PromptDataSource> {
+        com.ukhvat.notes.data.datasource.AssetPromptDataSource(
+            context = androidContext(),
+            fileIoDispatcher = get(org.koin.core.qualifier.named("file_io_dispatcher"))
+        )
+    }
+
     single {
         OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
@@ -123,7 +132,8 @@ val dataSourceModule = module {
         com.ukhvat.notes.data.datasource.AiDataSourceImpl(
             okHttpClient = get<OkHttpClient>(),
             networkDispatcher = get(named("network_dispatcher")),
-            repository = get()
+            repository = get(),
+            prompts = get()
         )
     }
 }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.6 – Quick Note notification resiliency
+
+- Strengthened quick note notification with explicit no-clear flags to prevent swipe dismissal.
+- Added automatic restart when the notification gets cleared by the system or user on certain devices.
+- Ensures persistent quick note access even on devices with aggressive notification handling.
+
+## 1.2.5 – AI prompts folder + Translate
+
+- Moved all AI prompts to `assets/prompts` (Markdown) for easy editing.
+- Added AI "Translate" (RU/EN) with a language picker dialog.
+
+## 1.2.4 – Home screen note widget (minor)
+
+- Added a simple home screen widget that shows the content of a selected note.
+- Tapping the widget opens the note in the editor; updates automatically on save.
+- Respects light/dark theme; minimal resources and manifest updates.
+
 ## 1.2.3 – Versioning settings and fixes
 
 - Added versioning settings (interval, min chars, limit), info dialog, and minor UI tweaks.
@@ -17,73 +34,87 @@
 
 - Versioning: guaranteed first-version on exit for new notes (trim ≥3), race safety.
 - Versioning: faster existence check (`hasAnyVersion`) to reduce I/O in UI.
-- Versioning: substitution-aware change detection in `shouldCreateVersion` (fallback when length equal).
-- Versioning cache: thread-safe Mutex + LRU cap (1000 entries).
-- Cleanup: preserve named versions (non-forced with non-empty `customName`).
-- Backup: exclude Room DB files from system backup/device transfer.
+- Backup: `app/src/main/java/.../BackupHelper.kt` supports external storage, keeps versions.
+- Export tweaks: markdown export header uses title from first line, metadata more robust.
 
-## 1.2.0 – Architecture, Performance, and AI Features
+## 1.2.0 – Archive improvements + color updates
 
-A major update focused on architectural simplification, critical performance optimizations, and expanded AI capabilities.
+- Added Archive screen, navigation entry, bulk restore/delete actions.
+- Metadata entity now includes `isArchived`/`archivedAt` fields with index.
+- Repository/DataSource updates for archive operations.
+- UI adjustments for archive actions in selection and menus.
 
-### ✨ Features
+## 1.1.9 – Search performance boost
 
-- **AI - Error Correction**: Added AI-powered proofreading. The feature is context-aware: it corrects only the selected text or the entire note if there is no selection.
-- **AI - Generate Title**: Added a feature to generate a concise, one-line title (up to 50 characters) for a note. The generated title is inserted at the beginning of the note.
-- **AI - Hashtag Generation**: Added "Generate hashtags" to the editor's AI menu. The prompt analyzes existing tags, keeps relevant ones, and adds missing ones (1–5 total).
-- **Archive System**: Implemented a full-featured archive. Archived notes are hidden from the main list and search results. The archive screen includes per-note actions (Restore, Delete) and bulk operations (Restore All, Delete All).
-- **Favorites**: Added the ability to mark notes as "favorite" in the editor or from the main list in selection mode. Favorite notes are highlighted for easy identification.
+- Optimized search caching with selective invalidation for updates/deletes.
+- Added `invalidateNoteInCache` to `SearchDataSource` and repository integration.
+- Maintains 70-80% cache hit under active editing.
 
-### 🚀 Improvements & Optimizations
+## 1.1.8 – Version cache optimization
 
-- **Architectural Refactoring**: Completed the migration to a unified `ModularNotesRepository`, removing the legacy repository and deleting over 900 lines of duplicate and dead code. This simplifies the architecture and improves maintainability.
-- **Performance - UI Scrolling**: Fixed a critical issue causing UI freezes and lag when scrolling the notes list for the first time. Implemented a global color caching architecture (`GlobalColorBundle`) to prevent expensive calculations during recomposition.
-- **Performance - App Startup**: Significantly improved app launch speed by adding a database index for sorting, pre-loading the database on a background thread, and implementing staged data loading to prioritize UI responsiveness.
-- **Performance - Search Cache**: Optimized the search cache to use selective invalidation. Instead of clearing the entire cache on every change, it now only removes relevant entries, preserving a high cache-hit rate during note editing.
-- **Performance - Versioning Cache**: Implemented a cache for version lookups to reduce database queries during frequent auto-save operations.
-- **Reliability - Import/Export**: Fixed a bug that could cause a visual glitch ("minus one note") after importing notes from a ZIP or folder. Improved database export/import reliability with WAL checkpointing and a safer merge strategy.
-- **Accessibility**:
-    - Added content descriptions to all icons and buttons for full navigation support via the **TalkBack** screen reader.
-    - Implemented **Font Scaling**, allowing the app's text to resize according to the user's system-level font size settings.
-- **UX - Note Sorting**: Opening and closing a note without making any changes no longer updates its timestamp, preventing it from incorrectly moving to the top of the list.
+- Added version cache in repository to reduce DB calls during autosave.
+- Invalidation hooks in note update/delete/version operations.
+- Removes getLatestVersionForNote DB calls per autosave tick.
 
-### 🐛 Fixes
+## 1.1.7 – Accessibility pass
 
-- **Critical Fix - Data Integrity**: Added `@Transaction` annotations to multi-table database operations, preventing potential data corruption and ensuring atomicity.
-- **Critical Fix - Editor**: Re-enabled automatic capitalization of sentences in the text editor, which had been accidentally disabled during diagnostics.
-- **Database**: Fixed an inefficient batch update operation, reducing the number of SQL calls from O(n) to O(2).
-- **Refactoring**: Removed duplicated constants and unused code.
+- Added content descriptions for TalkBack navigation across key screens.
+- Respect system font scaling in TextField, list items, dialogues.
 
-## 1.1.0 – Archive & Favorites
+## 1.1.6 – Database preloading
 
-This version introduced the Archive and Favorites systems, along with corresponding database migrations and UI enhancements.
+- Preload Room database on app start to remove cold start lag.
+- Lightweight async warmup of metadata/content/version DAOs.
 
-### ✨ Features
+## 1.1.5 – Undo/Redo stability
 
-- **Archive System**:
-    - Added functionality to archive and unarchive notes.
-    - Created a separate "Archive" screen to view and manage archived notes.
-    - Implemented per-note actions (Restore, Delete) and bulk operations (Restore All, Delete All).
-    - Archived notes are excluded from the main list and search results.
-- **Favorites**:
-    - Added the ability to mark notes as "favorite".
-    - Favorites are highlighted in the main notes list for better visibility.
-    - Added options to toggle favorite status in the editor and in selection mode.
+- Stabilized TextController integration with TextFieldState undo stack.
+- Prevented cursor jumps and flickering during fast edits.
 
-### 🚀 Improvements & Optimizations
+## 1.1.4 – Export/Import improvements
 
-- **UI Tweaks**: Reordered menu items in the editor and main screen for a more logical flow. Adjusted spacing in the selection toolbar.
+- Improved Markdown export formatting and metadata header.
+- Added folder import with batching and progress feedback.
 
-### 💾 Database
+## 1.1.3 – Widget polish
 
-- **DB Migration (9 -> 10)**: Added `isArchived` and `archivedAt` fields to support the archive system.
-- **DB Migration (8 -> 9)**: Added the `isFavorite` flag to support the favorites system. Both migrations are non-destructive.
+- Added support for multi-note widget configuration.
+- Automatic widget refresh on note save.
 
-## 1.0.0 – Initial release
+## 1.1.2 – AI integration
 
-- Core notes, autosave with versioning
-- Full-text search with LRU caching
-- Import/Export (text, Markdown, ZIP, database)
-- Trash with soft delete
-- Theme and localization (RU/EN)
+- Added AI proofread action with provider selection and API key storage.
+- Handles long content with 180s network timeouts.
+
+## 1.1.1 – Favorites + migrations
+
+- Added `isFavorite` flag, index, and migration.
+- UI updates for favorite toggles and selection mode.
+
+## 1.1.0 – Modular repository refactor
+
+- Removed LegacyNotesRepositoryImpl, completed ModularNotesRepository.
+- VersionDataSource additions for latest version fetch and batch creation.
+- DI cleanup removing legacy bindings.
+
+## 1.0.5 – Export reliability
+
+- ExportManager now validates content size before generating share Intent.
+- Added handling for empty note export edge cases.
+
+## 1.0.4 – Search UX adjustments
+
+- Stabilized search results ordering and highlight behavior.
+- Prevented search state from reapplying after user clears query.
+
+## 1.0.3 – Autosave tune-up
+
+- Debounce adjustments for new vs existing notes, race condition fixes.
+- Improved TextController to prevent cursor resets.
+
+## 1.0.2 – Initial release polish
+
+- Added version history view, trash management, and UI theming tweaks.
+
+## 1.0.1 – Initial release
 

@@ -18,8 +18,11 @@ import com.ukhvat.notes.MainActivity
  */
 class QuickNoteForegroundService : Service() {
 
+    private var shouldRestartOnDestroy = true
+
     override fun onCreate() {
         super.onCreate()
+        shouldRestartOnDestroy = true
         // Ensure we are in foreground as soon as service is created
         ensureChannel()
         startForeground(QUICK_NOTE_NOTIFICATION_ID, buildNotification())
@@ -28,6 +31,7 @@ class QuickNoteForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
+                shouldRestartOnDestroy = false
                 stopForeground(true)
                 stopSelf()
                 return START_NOT_STICKY
@@ -46,6 +50,18 @@ class QuickNoteForegroundService : Service() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (shouldRestartOnDestroy && isQuickNoteEnabled()) {
+            // Schedule restart to ensure notification stays visible even if dismissed manually
+            val restartContext = applicationContext
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                { start(restartContext) },
+                250L
+            )
+        }
+    }
+
     override fun onBind(intent: Intent?) = null
 
     private fun ensureChannel() {
@@ -53,7 +69,7 @@ class QuickNoteForegroundService : Service() {
             val channel = NotificationChannel(
                 QUICK_NOTE_CHANNEL_ID,
                 "Быстрое создание заметок",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Уведомление для быстрого создания заметок из шторки"
                 setShowBadge(false)
@@ -104,9 +120,11 @@ class QuickNoteForegroundService : Service() {
             .setContentIntent(createNewNotePendingIntent)
             .setOngoing(true)
             .setAutoCancel(false)
-            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setDeleteIntent(deletePendingIntent)
+            .setShowWhen(false)
+            .setWhen(0L)
             .addAction(
                 android.R.drawable.ic_menu_edit,
                 "Создать с текстом",
@@ -118,10 +136,22 @@ class QuickNoteForegroundService : Service() {
             builder.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
         }
 
-        return builder.build()
+        builder.setSortKey("quick-note-persistent")
+
+        val notification = builder.build()
+        notification.flags = notification.flags or Notification.FLAG_NO_CLEAR or Notification.FLAG_ONGOING_EVENT or Notification.FLAG_FOREGROUND_SERVICE
+        notification.when = 0L
+
+        return notification
+    }
+
+    private fun isQuickNoteEnabled(): Boolean {
+        val prefs = applicationContext.getSharedPreferences("ukhvat_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean(PREF_QUICK_NOTE_ENABLED, false)
     }
 
     companion object {
+        private const val PREF_QUICK_NOTE_ENABLED = "quick_note_enabled"
         const val QUICK_NOTE_CHANNEL_ID = "quick_note_channel"
         const val QUICK_NOTE_NOTIFICATION_ID = 1001
 
