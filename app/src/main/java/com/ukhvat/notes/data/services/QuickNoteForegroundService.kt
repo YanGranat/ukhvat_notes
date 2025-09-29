@@ -140,7 +140,7 @@ class QuickNoteForegroundService : Service() {
 
         val notification = builder.build()
         notification.flags = notification.flags or Notification.FLAG_NO_CLEAR or Notification.FLAG_ONGOING_EVENT or Notification.FLAG_FOREGROUND_SERVICE
-        notification.when = 0L
+        notification.`when` = 0L
 
         return notification
     }

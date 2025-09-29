@@ -1,11 +1,5 @@
 # Changelog
 
-## 1.2.6 – Quick Note notification resiliency
-
-- Strengthened quick note notification with explicit no-clear flags to prevent swipe dismissal.
-- Added automatic restart when the notification gets cleared by the system or user on certain devices.
-- Ensures persistent quick note access even on devices with aggressive notification handling.
-
 ## 1.2.5 – AI prompts folder + Translate
 
 - Moved all AI prompts to `assets/prompts` (Markdown) for easy editing.
